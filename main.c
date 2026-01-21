@@ -1,6 +1,16 @@
 #include <stdio.h>
 
 int main() {
-    printf("Hello C from GitHub Codespaces!\n");
+    char name[50];
+    int age;
+
+    printf("Enter your name: ");
+    scanf("%s", name);
+
+    printf("Enter your age: ");
+    scanf("%d", &age);
+
+    printf("Hello %s, you are %d years old.\n", name, age);
+
     return 0;
 }
