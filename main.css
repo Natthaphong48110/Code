@@ -1,0 +1,20 @@
+html, body {
+    margin: 0; padding: 0;
+}
+.head {background-color: rgb(165, 162, 162);
+padding: 20px; margin: 0;}
+.head-text {font-size: 30px; text-decoration: none;padding-left: 40px; color: rgb(66, 65, 65);}
+.head-text-home {font-size: 40px; font-weight: 600; text-decoration: none; margin-right: 400px; color: black;}
+.body {
+    background-color: rgb(148, 148, 124); height: 500px;
+}
+
+.button {
+    text-decoration: none; text-align: center; color: black; font-size: 30px; background-color: rgb(121, 105, 105); padding: 10px; margin-top: 20px; display: inline-block; margin-left: 400px; margin-top: 5px;
+}
+footer {
+    background-color: gray; height: 50px;
+}
+.footer-text {
+    color: rgb(162, 180, 121); text-decoration: none; text-align: center;padding-left: 50%; font-size: 20px; font-weight: 300;
+}
