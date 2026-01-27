@@ -1,23 +1,12 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f2f2f2;
-  text-align: center;
-  padding-top: 50px;
+body, html {
+  padding: 0; margin: 0; background-color: aqua;
 }
-
-h1 {
-  color: #0077ff;
+header {
+  background-color: blue; width: 100%; display: inline-flex;
 }
-
-p {
-  font-size: 18px;
+.world {
+  background-color: aliceblue; width: 100px; padding: 10px 10px; margin: 10px 10px;
 }
-
-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  background-color: #0077ff;
-  color: white;
-  border: none;
-  border-radius: 5px;
+.hello {
+  background-color: aliceblue; width: 100px; padding: 10px 10px; margin: 10px 10px; 
 }
