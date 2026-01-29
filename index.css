@@ -7,6 +7,11 @@ body, html {
   font-weight: 600;
   font-style: normal;
 }
+header {
+  background-color: rgb(201, 201, 201); 
+  display: flex; 
+  border: 0px;
+}
 .bg {
   background-image: url(rainbow.jpg);
   background-size: cover;
@@ -14,27 +19,22 @@ body, html {
   display: flex;
   height: 100vh;
 }
-
-header {
-  background-color: rgb(201, 201, 201); 
-  display: flex; 
-}
 .logo img {
-  max-width: 100px; 
+  max-width: 120px; 
   margin: 10px 0px 0px 0px;
 }
 .choice {
-  margin-left: 85vh; 
+  margin-left: 105vh; 
   margin-top: 10px;
 }
 .choice a {
   text-decoration: none; 
-  font-size: 30px; margin: 0 0 0 50px; 
+  font-size: 40px; margin: 0 0 0 50px; 
   color: rgb(64, 105, 194);
 }
 form {
-  height: 25px;
-  margin: 10px 0 0 2vh;
+  height: 35px;
+  margin: 20px 0 0 2vh;
   display: flex;
   border: 0px;
   
@@ -42,25 +42,30 @@ form {
 }
 .search-form button {
   margin-left: 10px;
-  border-radius: 15px;
+  border-radius: 20px;
   border: 0px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   color: rgb(78, 117, 151);
+  width: 70px;
+  box-shadow: 0px 0px 50px 1px white;
 }
 .search-form input {
-  padding-left: 10px;
+  padding-left: 20px;
   border: 0px;
-  border-radius: 15px;
+  border-radius: 20px;
+  width: 200px;
+  box-shadow: 0px 0px 50px 1px white;
 }
 .search-form input::placeholder {
   color: rgb(78, 117, 151); 
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 15px;
 }
 .bg a {
   color: white; 
   text-decoration: none; 
-  font-size: 20px;
+  font-size: 25px;
   text-align: center;
   align-items: center;
   justify-content: center;
@@ -68,20 +73,20 @@ form {
 }
 .click {
   background-color: rgb(113, 131, 168); 
-  height: 40px; 
-  width: 150px;
-  border-radius: 20px;
+  height: 50px; 
+  width: 170px;
+  border-radius: 30px;
   border: 0px;
-  margin-left: 131vh;
+  margin-left: 140vh;
   margin-top: 10px;
   display: flex;
 }
 
 footer p {
   font-family: "Kanit", sans-serif;
-  font-weight: 300;
+  font-weight: 400;
   font-style: normal;
-  font-size: 10px;
+  font-size: 15px;
 }
 
 
