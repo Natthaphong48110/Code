@@ -18,6 +18,7 @@ header {
   background-repeat: no-repeat;
   display: flex;
   height: 100vh;
+  
 }
 .logo img {
   max-width: 120px; 
@@ -51,42 +52,30 @@ form {
   box-shadow: 0px 0px 50px 1px white;
 }
 .search-form input {
-  padding-left: 20px;
+  padding-left: 50px;
   border: 0px;
   border-radius: 20px;
   width: 200px;
   box-shadow: 0px 0px 50px 1px white;
+  
+  background-image: url(google.png);
+  background-repeat: no-repeat;
+  background-size: 50px;
+  background-position: 0px center;
+  
 }
 .search-form input::placeholder {
   color: rgb(78, 117, 151); 
   font-weight: 600;
   font-size: 15px;
+  
 }
-.bg a {
-  color: white; 
-  text-decoration: none; 
-  font-size: 25px;
-  text-align: center;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 5px 5px 20px 1px rgb(63, 63, 134);
-}
-.click {
-  background-color: rgb(113, 131, 168); 
-  height: 50px; 
-  width: 170px;
-  border-radius: 30px;
-  border: 0px;
-  margin-left: 140vh;
-  margin-top: 10px;
-  display: flex;
-}
-
 footer p {
   font-family: "Kanit", sans-serif;
   font-weight: 400;
   font-style: normal;
   font-size: 15px;
 }
+
 
 
