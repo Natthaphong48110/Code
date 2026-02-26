@@ -181,7 +181,98 @@ html, body {
     height: 150vh;
     z-index: 1;
     position: relative;
+    min-width: 950px;
+    min-height: 100vh;
+    padding-top: 60px;
 }
+.hometext {
+    text-align: center;
+    display: block;
+    position: relative;
+}
+.hometext h1 {
+    padding: 10px 0px;
+    margin-top: 100px;
+    margin-bottom: 0px;
+    color: rgb(192, 138, 76);
+    font-size: 70px;
+}
+.sup-hometext {
+    position: relative;
+    display: inline-flex;
+    margin-top: 0px;
+    height: 100px;
+}
+.sup-hometext h2 {
+    font-size: 30px;
+    color: rgb(192, 138, 76);
+    position: absolute;
+    top: 0px;
+    left: -220px;
+    padding: 5px 5px 0px 5px;
+}
+.sup-hometext-h2 h2 {
+    font-size: 50px;
+    top: -30px;
+    left: -20px;
+    border-radius: 25px;
+    transition: 0.3s;
+}
+.sup-hometext-h2 h2:hover {
+    box-shadow: 0px 0px 20px 2px  rgb(196, 188, 175);
+    background-color: rgb(204, 188, 163, .5);
+    transform-origin: center;
+}
+.hometext p {
+    margin-top: -20px;
+    font-size: 12px;
+}
+.hometext h3 {
+    font-size: 15px;
+}
+.menu {
+    width: 80%;
+    min-width: 1450px;
+    height: 300px;
+    text-align: center;
+    position: relative;
+    left: 10%;
+    top: 200px;  
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0px 0px 30px 1px rgb(0, 0, 0, 0.5); 
+    border-radius: 20px; 
+    backdrop-filter: blur(5px);
+    transition: 0.2s ease;
+}
+.menu:hover {
+    box-shadow: 0px 0px 20px 1px rgb(255, 255, 255, 0.1);  
+    backdrop-filter: blur(20px);
+    transform: scale(1.05, 1.05);
+}
+
+.menu-box a {
+    backdrop-filter: blur(20px);
+    background-color: rgba(0, 0, 0, 0.1);
+    color: white;
+    font-size: 30px;
+    text-decoration: none;
+    padding: 100px 150px;
+    margin: 0px 20px;
+    border-radius: 30px;
+    box-shadow: 0px 0px 10px 1px black;
+    display: inline-block;
+    transition: 0.3s;
+}
+.menu-box a:hover {
+    transform: scale(1.1, 1.1);
+    box-shadow: 0px 0px 20px 1px rgb(255, 255, 255);
+    background-color: rgb(255, 255, 255, 0.1);
+    color: rgb(255, 143, 69);
+    
+}
+
 
 
 
