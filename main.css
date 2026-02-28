@@ -7,11 +7,10 @@ html, body {
     backdrop-filter: blur(10px);
     min-width: 950px;
     width: 100%;
-    margin-top: 0px;
     position: fixed;
     display: flex;
     height: 60px;
-    margin-top: 0px;
+    margin-top: 5px;
     z-index: 10;
     border-radius: 20px;
     box-shadow: 0px 2px 20px black;
@@ -81,46 +80,47 @@ html, body {
     right: 3%;
     display: flex;
     top: 15px;
+    width: 506px;
 }
-.product-list {
+.topbar-list {
     position: relative;
-    margin-right: 40px;
     transition: transform 0.3s ease , 0.3s;
+    width: 130px;
+    margin-left: 0px;
+    padding: 0px 25px;
+    margin-right: 5px;
 }
-.product-list:hover {
+.topbar-list:hover {
     transform: scale(1.1, 1.1);
 }
-.product-list a {
+.topbar-list a {
     font-size: 30px;
     font-weight: 600;
     text-decoration: none;
     color: rgb(152, 162, 175);
-    padding-left: 25px;
     transition: 0.3s;
-    margin-right: -36px;
-    padding-right: 25px;
 }
-.product-list a:hover {
+.topbar-list a:hover {
     transform: scale(1.1, 1.1);
     color: white;
 }
-.product-list ul {
+.topbar-list ul {
     position: absolute;
     backdrop-filter: blur(50px);
-    padding-left: 0px;
     width: 175px;
     padding: 20px 0px 10px 20px;
     border-radius: 20px;
     box-shadow: 0px 2px 10px black;
     display: none;
     margin-top: 0px;
+    left: -7px;
     transition: 0.3s;
 
 }
-.product-list ul:hover {
+.topbar-list ul:hover {
     transform: scale(1.03, 1.03);
 }
-.product-list ul li {
+.topbar-list ul li {
     list-style: none;
     margin-bottom: 10px;
     border: 1px solid black;
@@ -131,29 +131,35 @@ html, body {
     transition: 0.3s ease;
     box-shadow: 0px 2px 10px black;
 }
-.product-list ul li:hover {
+.topbar-list ul li:hover {
     transform: scale(1.1, 1.1);
 }
-.product-list ul li a {
+.topbar-list ul li a {
     font-size: 20px;
     position: relative;
-    left: -15px;
-    top: 4px;
+    display: block;
+    left: 50px;
+    transform: translateX(-50px);
+    top: 1px;
     color: rgb(152, 162, 175);
     transition: 0.3s ease;
     padding-right: 30px;
+    padding: 3px 0px;
+    width: 150px;
+    border-radius: 20px;
 }
-.product-list ul li a:hover {
+.topbar-list ul li a:hover {
     transform: scale(1.1 , 1.1);
-    left: -15px;
-    top: 4px;
+    left: 50px;
+    transform: translateX(-50px);
+    top: 1px;
     color: white;
 }
-.product-list:hover ul {
+.topbar-list:hover ul {
     display: block;
 }
 .choice .normal-choice {
-    width: 400px;
+    width: 321px;
     transition: 0.3s ease;
 }
 
@@ -214,17 +220,18 @@ html, body {
 .sup-hometext-h2 h2 {
     font-size: 50px;
     top: -30px;
-    left: -20px;
+    left: 15px;
     border-radius: 25px;
+    padding: 5px 10px 10px 10px;
     transition: 0.3s;
 }
 .sup-hometext-h2 h2:hover {
-    box-shadow: 0px 0px 20px 2px  rgb(196, 188, 175);
-    background-color: rgb(204, 188, 163, .5);
+    box-shadow: 0px 0px 30px 5px  rgb(196, 188, 175);
+    background-color: rgb(196, 188, 175, .6);
     transform-origin: center;
 }
 .hometext p {
-    margin-top: -20px;
+    margin-top: 40px;
     font-size: 12px;
 }
 .hometext h3 {
@@ -234,7 +241,6 @@ html, body {
     width: 80%;
     min-width: 1450px;
     height: 300px;
-    text-align: center;
     position: relative;
     left: 10%;
     top: 200px;  
@@ -251,26 +257,51 @@ html, body {
     backdrop-filter: blur(20px);
     transform: scale(1.05, 1.05);
 }
-
+.menu-box img {
+    width: auto;
+    height: 240px;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 5px;
+    border-radius: 40%;
+    transition: 0.3s ease;
+}
+.menu-box img:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 0px 40px 2px rgba(0, 0, 0, 0.2);
+}
 .menu-box a {
     backdrop-filter: blur(20px);
     background-color: rgba(0, 0, 0, 0.1);
-    color: white;
-    font-size: 30px;
-    text-decoration: none;
-    padding: 100px 150px;
+    width: 450px;
+    height: 250px;
+    padding: 0px 0px;
     margin: 0px 20px;
     border-radius: 30px;
     box-shadow: 0px 0px 10px 1px black;
     display: inline-block;
+    position: relative;
+    overflow: hidden;
     transition: 0.3s;
+}
+.menu-box a::before {
+    width: 0%;
+    height: 100%;
+    content: "";
+    left: 0;
+    top: 0;
+    position: absolute;
+    background: linear-gradient(to right , rgb(0, 0, 0 , .2) 40%,
+    rgb(255, 255, 255 , .2));
+    transition: .5s ease;
+}
+.menu-box a:hover::before {
+    width: 100%;
 }
 .menu-box a:hover {
     transform: scale(1.1, 1.1);
     box-shadow: 0px 0px 20px 1px rgb(255, 255, 255);
-    background-color: rgb(255, 255, 255, 0.1);
-    color: rgb(255, 143, 69);
-    
 }
 
 
