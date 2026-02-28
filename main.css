@@ -5,7 +5,7 @@ html, body {
 }
 .topbar {
     backdrop-filter: blur(10px);
-    min-width: 950px;
+    min-width: 900px;
     width: 100%;
     position: fixed;
     display: flex;
@@ -239,7 +239,7 @@ html, body {
 }
 .menu {
     width: 80%;
-    min-width: 1450px;
+    min-width: 1480px;
     height: 300px;
     position: relative;
     left: 10%;
