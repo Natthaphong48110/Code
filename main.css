@@ -5,22 +5,25 @@ html, body {
 }
 .topbar {
     backdrop-filter: blur(10px);
-    min-width: 900px;
     width: 100%;
     position: fixed;
     display: flex;
-    height: 60px;
-    margin-top: 5px;
+    align-items: center;
+    height: 3.5rem;
+    margin-top: .5rem;
     z-index: 10;
     border-radius: 20px;
     box-shadow: 0px 2px 20px black;
 }
 .logo {
-    width: 50px;
-    margin: 5px 0px 5px 5px;
+    margin: 0 .5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .logo img {
-    width: 50px;
+    width: 3.5rem;
+    height: auto;
     transition: transform 0.2s ;
 
 }
@@ -28,17 +31,18 @@ html, body {
     transform: scale(1.1 , 1.1);
 }
 .search-box {
-    position: absolute;
-    top: 15px;
-    left: 100px;
+    position: relative;
+    display: flex;
+    margin: 0 1.5rem;
 }
 .search-box input {
     border: none;
     border-radius: 50px;
-    height: 25px;
-    width: 200px;
-    padding-left: 15px;
-    font-size: 15px;
+    height: 1.5rem;
+    width: 15rem;
+    padding-left: 1rem;
+    margin-right: 1rem;
+    font-size: 1rem;
     font-weight: 500;
     color: rgb(233, 233, 233);
     background: transparent;
@@ -46,21 +50,21 @@ html, body {
     box-shadow: 0px 2px 10px black;
 }
 .search-box input::placeholder {
-    font-size: 15px;
+    font-size: 1rem;
     font-weight: 600;
-    padding-left: 25px;
+    padding-left: 1.5rem;
     background-image: url(search.png);
-    background-position: -1px 1px;
+    background-position: -0.1rem 0;
     background-repeat: no-repeat;
-    background-size: 20px;
+    background-size: 1.2rem;
     color: rgb(233, 233, 233);
 }
 .search-box button {
-    width: 60px;
-    height: 25px;
+    width: 3.5rem;
+    height: 1.5rem;
     border: none;
     border-radius: 50px;
-    font-size: 15px;
+    font-size: 1rem;
     font-weight: 600;
     transition: transform 0.1s , color 0.1s , background-color 0.1s;
     cursor: pointer;
@@ -77,24 +81,22 @@ html, body {
 }
 .choice {
     position: absolute;
-    right: 3%;
+    right: 1%;
     display: flex;
-    top: 15px;
-    width: 506px;
+    width: 33rem;
 }
 .topbar-list {
     position: relative;
     transition: transform 0.3s ease , 0.3s;
-    width: 130px;
-    margin-left: 0px;
+    width: 8rem;
     padding: 0px 25px;
-    margin-right: 5px;
+    margin-right: 0.3rem;
 }
 .topbar-list:hover {
     transform: scale(1.1, 1.1);
 }
 .topbar-list a {
-    font-size: 30px;
+    font-size: 2rem;
     font-weight: 600;
     text-decoration: none;
     color: rgb(152, 162, 175);
@@ -107,13 +109,13 @@ html, body {
 .topbar-list ul {
     position: absolute;
     backdrop-filter: blur(50px);
-    width: 175px;
-    padding: 20px 0px 10px 20px;
+    width: 10rem;
+    padding: 1rem;
     border-radius: 20px;
     box-shadow: 0px 2px 10px black;
     display: none;
     margin-top: 0px;
-    left: -7px;
+    left: -0.4rem;
     transition: 0.3s;
 
 }
@@ -122,12 +124,15 @@ html, body {
 }
 .topbar-list ul li {
     list-style: none;
-    margin-bottom: 10px;
+    display: flex;
+    margin-bottom: 0.8rem;
     border: 1px solid black;
     border-radius: 50px;
-    height: 30px;
-    width: 150px;
+    height: 2rem;
+    width: 10rem;
     text-align: center;
+    justify-content: center;
+    align-items: center;
     transition: 0.3s ease;
     box-shadow: 0px 2px 10px black;
 }
@@ -135,42 +140,38 @@ html, body {
     transform: scale(1.1, 1.1);
 }
 .topbar-list ul li a {
-    font-size: 20px;
+    font-size: 1.5rem;
     position: relative;
-    display: block;
-    left: 50px;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
     transform: translateX(-50px);
-    top: 1px;
     color: rgb(152, 162, 175);
     transition: 0.3s ease;
-    padding-right: 30px;
-    padding: 3px 0px;
-    width: 150px;
+    width: 10rem;
+    height: 2rem;
+    transform: translateX(0rem);
     border-radius: 20px;
 }
 .topbar-list ul li a:hover {
-    transform: scale(1.1 , 1.1);
-    left: 50px;
-    transform: translateX(-50px);
-    top: 1px;
     color: white;
 }
 .topbar-list:hover ul {
     display: block;
 }
 .choice .normal-choice {
-    width: 321px;
     transition: 0.3s ease;
 }
 
 .choice .normal-choice a {
-    font-size: 30px;
+    font-size: 2rem;
     font-weight: 600;
     text-decoration: none;
     color: rgb(152, 162, 175);
-    padding: 0px 25px 0px 25px;
-    margin-left: -2px;    
+    padding: 0px 25px;    
     transition: 0.3s;
+    margin-right: 0.1rem;
     display: inline-flex;
 }
 .choice .normal-choice a:hover {
@@ -184,12 +185,12 @@ html, body {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    height: 150vh;
+    min-height: 150vh;
+    width: 100%;
     z-index: 1;
     position: relative;
-    min-width: 950px;
-    min-height: 100vh;
-    padding-top: 60px;
+    padding-top: 5rem;
+    padding-bottom: 6rem;
 }
 .hometext {
     text-align: center;
@@ -198,29 +199,28 @@ html, body {
 }
 .hometext h1 {
     padding: 10px 0px;
-    margin-top: 100px;
     margin-bottom: 0px;
     color: rgb(192, 138, 76);
-    font-size: 70px;
+    font-size: 5rem;
 }
 .sup-hometext {
     position: relative;
-    display: inline-flex;
+    display: inline-flex ;
     margin-top: 0px;
     height: 100px;
 }
 .sup-hometext h2 {
-    font-size: 30px;
+    font-size: 2rem;
     color: rgb(192, 138, 76);
     position: absolute;
     top: 0px;
-    left: -220px;
+    left: -16rem;
     padding: 5px 5px 0px 5px;
 }
 .sup-hometext-h2 h2 {
-    font-size: 50px;
-    top: -30px;
-    left: 15px;
+    font-size: 3.5rem;
+    top: -2rem;
+    left: 2rem;
     border-radius: 25px;
     padding: 5px 10px 10px 10px;
     transition: 0.3s;
@@ -231,19 +231,18 @@ html, body {
     transform-origin: center;
 }
 .hometext p {
-    margin-top: 40px;
-    font-size: 12px;
+    margin-top: 2rem;
+    font-size: 0.8rem;
 }
 .hometext h3 {
-    font-size: 15px;
+    font-size: 1rem;
 }
 .menu {
     width: 80%;
-    min-width: 1480px;
-    height: 300px;
+    height: 20rem;
     position: relative;
-    left: 10%;
-    top: 200px;  
+    margin-left: 10%;
+    margin-top: 12rem;  
     display: flex;
     justify-content: center;
     align-items: center;
@@ -259,11 +258,11 @@ html, body {
 }
 .menu-box img {
     width: auto;
-    height: 240px;
+    height: 13rem;
     position: relative;
     left: 50%;
     transform: translateX(-50%);
-    top: 5px;
+    top: 1rem;
     border-radius: 40%;
     transition: 0.3s ease;
 }
@@ -274,10 +273,10 @@ html, body {
 .menu-box a {
     backdrop-filter: blur(20px);
     background-color: rgba(0, 0, 0, 0.1);
-    width: 450px;
-    height: 250px;
+    width: 25rem;
+    height: 15rem;
     padding: 0px 0px;
-    margin: 0px 20px;
+    margin: 0 2rem;
     border-radius: 30px;
     box-shadow: 0px 0px 10px 1px black;
     display: inline-block;
@@ -302,6 +301,17 @@ html, body {
 .menu-box a:hover {
     transform: scale(1.1, 1.1);
     box-shadow: 0px 0px 20px 1px rgb(255, 255, 255);
+}
+@media only screen and (max-width: 1280px) {
+    .menu-box img {
+    width: auto;
+    height: 13rem;
+    }
+    .menu-box a {
+    width: 17rem;
+    height: 15rem;
+    margin: 0 1rem;
+    }
 }
 
 
