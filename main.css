@@ -258,11 +258,11 @@ html, body {
 }
 .menu-box img {
     width: auto;
-    height: 13rem;
+    height: 90%;
     position: relative;
     left: 50%;
     transform: translateX(-50%);
-    top: 1rem;
+    top: 5%;
     border-radius: 40%;
     transition: 0.3s ease;
 }
@@ -274,12 +274,12 @@ html, body {
     backdrop-filter: blur(20px);
     background-color: rgba(0, 0, 0, 0.1);
     width: 25rem;
-    height: 15rem;
+    height: 16rem;
     padding: 0px 0px;
     margin: 0 2rem;
     border-radius: 30px;
     box-shadow: 0px 0px 10px 1px black;
-    display: inline-block;
+    display: inline-flex;
     position: relative;
     overflow: hidden;
     transition: 0.3s;
@@ -302,15 +302,345 @@ html, body {
     transform: scale(1.1, 1.1);
     box-shadow: 0px 0px 20px 1px rgb(255, 255, 255);
 }
-@media only screen and (max-width: 1280px) {
-    .menu-box img {
-    width: auto;
-    height: 13rem;
+@media screen and (max-width:1750px) {
+    .menu-box a {
+    width: 24rem;
+    height: 16rem;
     }
+}
+
+@media screen and (max-width:1690px) {
+    .menu-box a {
+    width: 23rem;
+    height: 16rem;
+    }
+    .menu {
+        margin-top: 7rem;
+    }
+}
+@media screen and (max-width:1630px) {
+    .menu-box a {
+    width: 22rem;
+    height: 16rem;
+    }
+}
+@media screen and (max-width:1570px) {
+    .menu-box a {
+    width: 21rem;
+    height: 16rem;
+    }
+}
+@media screen and (max-width:1510px) {
+    .menu-box a {
+    width: 20rem;
+    height: 16rem;
+    }
+}
+@media screen and (max-width:1450px) {
+    .menu-box a {
+    width: 19rem;
+    height: 16rem;
+    }
+}
+@media screen and (max-width:1390px) {
+    .menu-box a {
+    width: 18rem;
+    height: 14rem;
+    }
+    .menu {
+        height: 18rem;
+    }
+}
+@media screen and (max-width:1330px) {
     .menu-box a {
     width: 17rem;
-    height: 15rem;
+    height: 14rem;
+    }
+}
+@media screen and (max-width:1280px) {
+    .menu-box a {
+    width: 16rem;
+    height: 12rem;
+    }
+    .menu {
+        height: 16rem;
+    }
+}
+@media screen and (max-width:1210px) {
+    .menu-box a {
+    width: 15rem;
+    height: 12rem;
+    }
+}
+@media screen and (max-width:1150px) {
+    .menu-box a {
+    width: 14rem;
+    height: 12rem;
+    }
+}
+@media screen and (max-width:1090px) {
+    .menu-box a {
+    width: 13rem;
+    height: 12rem;
+    margin: 0 1.5rem;
+    }
+}
+@media screen and (max-width:970px) {
+    .logo img {
+        width: 3rem;
+    }
+    .search-box {
+        margin-left: 0.5rem;
+    }
+    .choice {
+        width: 17.2rem;
+        height: 3rem;
+        
+    }
+    .topbar-list {
+        width: 3rem;
+        padding: 0 1.5rem;
+        margin-right: 0.1rem;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .topbar-list a {
+        font-size: 1.2rem;
+    }
+    .topbar-list ul {
+        width: 6rem;
+        margin-left: -1rem;
+        margin-top: 1rem;
+    }
+    .topbar-list ul li {
+        width: 6rem;
+    }
+    .topbar-list ul li a {
+        font-size: 1rem;
+    }
+    .normal-choice {
+        display: flex;
+    }
+    .choice .normal-choice a {
+        font-size: 1.2rem;
+        padding: 0 0.5rem;
+        display: flex;
+        position: relative;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+    }
+    .menu-box a {
+    width: 12rem;
+    height: 12rem;
+    }
+}
+
+@media screen and (max-width:910px) {
+    .menu-box a {
+    width: 11rem;
+    height: 10rem;
+    }
+    .menu {
+        height: 12rem;
+    }
+}
+@media screen and (max-width:850px) {
+    .menu-box a {
+    width: 10rem;
+    }
+}
+@media screen and (max-width:790px) {
+    .menu-box a {
+    width: 9rem;
+    }
+}
+@media screen and (max-width:730px) {
+    .menu-box a {
+    width: 9rem;
+    height: 8rem;
     margin: 0 1rem;
+    }
+    .menu {
+        height: 10rem;
+    }
+}
+@media screen and (max-width:670px) {
+    .logo img {
+        width: 2.5rem;
+
+    }
+    .search-box input {
+        width: 8rem;
+        height: 1rem;
+        margin-right: 0.5rem;
+        font-size: 0.6rem;
+        font-weight: 500;
+    }
+    .search-box input::placeholder {
+        font-size: 0.6rem;
+        font-weight: 500;
+        background-position: 0 0;
+        background-size: 0.7rem;
+    }
+    .search-box button {
+        width: 3rem;
+        height: 1rem;
+        font-size: 0.6rem;
+        font-weight: 500;
+    }
+    .hometext h1 {
+        font-size: 3rem;
+    }
+    .sup-hometext h2 {
+        font-size: 1.2rem;
+        margin-left: 6rem;
+    }
+    .sup-hometext-h2 h2 {
+        font-size: 2rem;
+        margin-left: -1rem;
+        margin-top: 2.5rem;
+    }
+    .hometext p {
+        font-size: 0.5rem;
+        margin-top: 0;
+    }
+    .hometext h3 {
+        font-size: 0.8rem;
+    }
+    .menu {
+        margin-top: 18rem;
+    }
+    .menu-box a {
+        width: 8rem;
+    }
+}
+@media screen and (max-width:610px) {
+    .menu {
+        height: 8rem;
+    }
+    .menu-box a {
+        width: 8rem;
+        height: 6rem;
+        margin: 0 0.5rem;
+    }
+}
+@media screen and (max-width:550px) {
+    .topbar-list a {
+        font-size: 1rem;
+    }
+    .topbar-list {
+        padding: 0.8rem;
+    }
+    .topbar-list ul {
+        margin-left: -2rem;
+    }
+    .choice {
+        margin-right: 0;
+        width: 14rem;
+        
+    }
+    .choice .normal-choice a {
+        font-size: 1rem;
+        padding: 0.3rem;
+    }
+    .menu {
+        width: 90%;
+        margin-left: 5%;
+    }
+
+}
+@media screen and (max-width:490px) {
+    .topbar-list a {
+        font-size: 0.7rem;
+    }
+    .choice .normal-choice a {
+        font-size: 0.7rem;
+    }
+    .choice {
+        width: 12rem;
+    }
+    .topbar-list ul {
+        width: 5rem;
+        margin-left: -1rem;
+    }
+    .topbar-list ul li {
+        width: 5rem;
+    }
+    .topbar-list ul li a {
+        font-size: 0.7rem;
+    }
+    .menu-box a {
+        width: 7rem;
+    }
+}
+@media screen and (max-width:435px) {
+    .topbar input {
+        width: 5rem;
+        padding-left: 5px;
+    }
+    .topbar input::placeholder {
+        font-size: 0.4rem;
+        background-size: 0.6rem;
+        background-position: 0.1rem -0.05rem;
+        padding-left: 20%;
+    }
+    .topbar button {
+        width: 2rem;
+        font-size: 0.4rem;
+    }
+    .menu-box a {
+        width: 7rem;
+        margin: 0 0.3rem;
+    }
+}
+@media screen and (max-width:415px) {
+    .menu-box a {
+        width: 6rem;
+    }
+}
+@media screen and (max-width:382px) {
+    .search-box input {
+        width: 4.5rem;
+        font-size: 0.5rem;
+    }
+    .search-box input::placeholder {
+        font-size: 0.3rem;
+        padding-left: 0.5rem;
+        background: none;
+    }
+    .search-box button {
+        width: 1.5rem;
+        font-size: 0.3rem;
+    }
+    .logo img {
+        width: 2rem;
+        margin-right: -0.5rem;
+    }
+    .hometext h1 {
+        font-size: 2.5rem;
+    }
+    .sup-hometext h2 {
+        font-size: 1rem;
+        margin-left: 8rem;
+        
+    }
+    .sup-hometext-h2 h2 {
+        font-size: 1.5rem;
+        margin-left: -1rem;
+
+    }
+    .hometext p {
+        font-size: 0.4rem;
+    }
+    .hometext h3 {
+        font-size: 0.5rem;
+    }
+    .menu-box a {
+        width: 6rem;
+        margin: 0 0.2rem;
     }
 }
 
