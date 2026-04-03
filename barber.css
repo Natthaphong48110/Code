@@ -189,4 +189,18 @@
     height: auto;
 }
 
+        /* responsive screen */
 
+@media screen and (max-width:365px) {
+    .brand-text h1 {
+        font-size: 2.5rem;
+    }
+}
+@media screen and (max-width:314px) {
+    .brand-text h1 {
+        font-size: 2rem;
+    }
+    .brand-text h2 {
+        font-size: 1.5rem;
+    }
+}
