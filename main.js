@@ -30,8 +30,17 @@ for (let x =1; x <=12; x = x+1) {
 
             //เครื่องหมาย
 /*
-+, -, *, /, **2(ยกกำลัง2), %2(หารแล้วได้เศษ2), === (=), !==(ไม่เท่ากับ) 
-,x +=5 (x+5 ไปเรื่อย เหมือน x = x+5)
+  +,
+  -, 
+  *, 
+  /, 
+  **2(ยกกำลัง2), 
+  %2(หารแล้วได้เศษ2),
+  ==(=คนละประเภทข้อมูลก็เท่ากับกันได้แค่ข้างในเท่ากัน), 
+  === (=ทุกอย่างต้องเหมือนกัน), 
+  != ,
+  !==(ไม่เท่ากับ), 
+  x +=5 (x+5 ไปเรื่อย เหมือน x = x+5)
 */
 
 
@@ -77,3 +86,19 @@ let texthtml = '<p>Hello</p>';
 content2.innerHTML = texthtml;
 (มีอีกอันนึง = content2.addEvenListener () ใช้กับปุ่มได้)
 */
+
+/*
+alert('Website');
+let name = prompt('Typing Your name'); //ตัวกรอกข้อมูล
+console.log(name);
+*/
+
+/*
+console.log(Math.floor(Math.random() *100) ) //สุ่มเลข math.floor=ปัดเศษลง
+*/
+
+/*
+console.log(String('Hello'))
+console.log(Number(10))
+*/
+
