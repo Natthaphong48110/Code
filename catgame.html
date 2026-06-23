@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ภารกิจแมวทำแกงหวายสกลนคร - 2D Educational Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600;700&family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Mitr', 'Sarabun', sans-serif;
+            user-select: none;
+            overflow: hidden;
+            background-color: #1a1a2e;
+        }
+        .pixel-corners {
+            border-radius: 16px;
+        }
+        /* Custom scrollbar for beautiful inventory and quests */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f59e0b;
+            border-radius: 4px;
+        }
+        /* Shake animation for processing */
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20%, 60% { transform: translate(-2px, 2px) rotate(-1deg); }
+            40%, 80% { transform: translate(2px, -2px) rotate(1deg); }
+        }
+        .animate-shake {
+            animation: shake 0.3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-2 md:p-4 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+
+    <!-- MAIN GAME CONTAINER -->
+    <div id="game-container" class="relative w-full max-w-5xl aspect-[16/10] bg-slate-800 rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-500/80 flex flex-col justify-between">
+        
+        <!-- TOP HUD (Visible during gameplay and minigames) -->
+        <div id="top-hud" class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-30 pointer-events-none">
+            <!-- Left Side: Player Info & Level -->
+            <div class="flex items-center gap-3 bg-slate-900/90 text-white px-4 py-2 rounded-2xl border-2 border-amber-500/50 shadow-lg pointer-events-auto">
+                <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-xl">🐱</div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-amber-400">เหมียวส้ม</span>
+                        <span class="text-xs bg-amber-600 px-1.5 py-0.5 rounded font-mono" id="hud-level">Lv.1</span>
+                    </div>
+                    <!-- EXP Bar -->
+                    <div class="w-28 bg-slate-700 h-2 rounded-full mt-1 overflow-hidden">
+                        <div id="hud-exp-bar" class="bg-gradient-to-r from-emerald-400 to-green-500 h-full w-[20%] transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center: Active Quest Indicator -->
+            <div class="bg-amber-500/95 text-slate-900 px-5 py-2.5 rounded-2xl border-2 border-amber-600 shadow-lg pointer-events-auto max-w-md text-center">
+                <div class="text-xs uppercase tracking-wider font-bold opacity-75">ภารกิจหลักในปัจจุบัน</div>
+                <div class="font-semibold text-sm md:text-base leading-tight" id="hud-active-quest">กำลังโหลด...</div>
+            </div>
+
+            <!-- Right Side: Score & Inventory Toggle -->
+            <div class="flex gap-2 pointer-events-auto">
+                <div class="bg-slate-900/90 text-white px-4 py-2 rounded-2xl border-2 border-amber-500/50 flex flex-col items-center justify-center min-w-[100px] shadow-lg">
+                    <span class="text-xs text-slate-400">คะแนนสะสม</span>
+                    <span class="font-bold text-amber-400 text-lg" id="hud-score">0</span>
+                </div>
+                <button onclick="toggleInventoryModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold p-3 rounded-2xl border-2 border-amber-600 shadow-lg flex items-center justify-center transition active:scale-95">
+                    🎒
+                </button>
+            </div>
+        </div>
+
+        <!-- START SCREEN overlay -->
+        <div id="screen-start" class="absolute inset-0 bg-slate-950/95 z-40 flex flex-col items-center justify-center p-6 text-center">
+            <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#f59e0b 1px, transparent 1px); background-size: 24px 24px;"></div>
+            <div class="relative z-10 max-w-2xl flex flex-col items-center">
+                <div class="text-6xl mb-4 filter drop-shadow-[0_4px_10px_rgba(245,158,11,0.5)]">🍲🐱🐾</div>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-amber-300 filter drop-shadow">
+                    ภารกิจแมวทำแกงหวายสกลนคร
+                </h1>
+                <p class="text-slate-300 mt-4 text-sm md:text-base leading-relaxed max-w-lg">
+                    สวมบทบาทเป็น "เจ้าเหมียวส้มป่าภูพาน" เรียนรู้ภูมิปัญญาอันล้ำค่าของจังหวัดสกลนคร ในการปรุงแกงหวายสูตรดั้งเดิม ตั้งแต่การขุดหน่อหวายธรรมชาติ จนนำไปเสิร์ฟให้อาจารย์ที่มหาวิทยาลัย!
+                </p>
+
+                <!-- Tutorial cards -->
+                <div class="grid grid-cols-2 gap-4 mt-6 text-left max-w-md text-xs md:text-sm text-slate-300">
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-amber-500/30">
+                        <span class="font-bold text-amber-400">🎮 การควบคุม (PC):</span>
+                        <ul class="list-disc pl-4 mt-1 space-y-1">
+                            <li>เดินด้วยปุ่มลูกศร ↑ ↓ ← →</li>
+                            <li>กด <span class="bg-slate-700 px-1.5 py-0.5 rounded">Spacebar</span> คุย/เก็บ/ปลูก</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-amber-500/30">
+                        <span class="font-bold text-amber-400">📱 การควบคุม (ทัช):</span>
+                        <ul class="list-disc pl-4 mt-1 space-y-1">
+                            <li>มีปุ่มจอยสติ๊กจำลองบนจอ</li>
+                            <li>มีปุ่มปุ่ม "Space/กระทำ" บนหน้าจอ</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button onclick="startGame()" class="mt-8 px-10 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xl rounded-2xl shadow-xl shadow-amber-500/20 hover:shadow-amber-500/40 border-b-4 border-orange-700 hover:border-orange-600 transition duration-150 transform hover:-translate-y-0.5 active:translate-y-0">
+                    เริ่มภารกิจแสนอร่อย 🐾
+                </button>
+            </div>
+        </div>
+
+        <!-- GAMEPLAY SCREEN (Main Overworld Map Canvas) -->
+        <div id="screen-gameplay" class="relative w-full h-full flex items-center justify-center bg-slate-900">
+            <canvas id="gameCanvas" class="w-full h-full block bg-emerald-950"></canvas>
+            
+            <!-- Mobile Controls overlay -->
+            <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end z-20 pointer-events-none md:flex">
+                <!-- Joystick Area -->
+                <div class="pointer-events-auto flex flex-col items-center bg-slate-950/40 p-2 rounded-full border border-white/10 backdrop-blur-sm">
+                    <div class="grid grid-cols-3 gap-1">
+                        <div></div>
+                        <button onmousedown="handleVirtualKey('ArrowUp', true)" onmouseup="handleVirtualKey('ArrowUp', false)" ontouchstart="handleVirtualKey('ArrowUp', true)" ontouchend="handleVirtualKey('ArrowUp', false)" class="w-11 h-11 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl flex items-center justify-center font-bold shadow-lg border border-slate-600 active:bg-amber-500 active:text-slate-950 transition">↑</button>
+                        <div></div>
+                        <button onmousedown="handleVirtualKey('ArrowLeft', true)" onmouseup="handleVirtualKey('ArrowLeft', false)" ontouchstart="handleVirtualKey('ArrowLeft', true)" ontouchend="handleVirtualKey('ArrowLeft', false)" class="w-11 h-11 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl flex items-center justify-center font-bold shadow-lg border border-slate-600 active:bg-amber-500 active:text-slate-950 transition">←</button>
+                        <div class="w-11 h-11 flex items-center justify-center text-xs opacity-50 text-slate-400">MOVE</div>
+                        <button onmousedown="handleVirtualKey('ArrowRight', true)" onmouseup="handleVirtualKey('ArrowRight', false)" ontouchstart="handleVirtualKey('ArrowRight', true)" ontouchend="handleVirtualKey('ArrowRight', false)" class="w-11 h-11 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl flex items-center justify-center font-bold shadow-lg border border-slate-600 active:bg-amber-500 active:text-slate-950 transition">→</button>
+                        <div></div>
+                        <button onmousedown="handleVirtualKey('ArrowDown', true)" onmouseup="handleVirtualKey('ArrowDown', false)" ontouchstart="handleVirtualKey('ArrowDown', true)" ontouchend="handleVirtualKey('ArrowDown', false)" class="w-11 h-11 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl flex items-center justify-center font-bold shadow-lg border border-slate-600 active:bg-amber-500 active:text-slate-950 transition">↓</button>
+                        <div></div>
+                    </div>
+                </div>
+
+                <!-- Action Button Area -->
+                <div class="pointer-events-auto flex flex-col items-center gap-1">
+                    <span class="text-[10px] text-white/60 bg-slate-950/60 px-2 py-0.5 rounded font-mono">SPACE BAR</span>
+                    <button onclick="triggerSpaceAction()" class="w-18 h-18 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-full border-4 border-amber-600 shadow-2xl flex flex-col items-center justify-center text-xs p-2 active:scale-90 transform transition duration-100">
+                        <span class="text-xl">🐱</span>
+                        <span>กระทำ / คุย</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Floating Dialogue Bubble above canvas -->
+            <div id="dialogue-box" class="absolute bottom-28 left-1/2 -translate-x-1/2 w-[90%] max-w-xl bg-slate-900/95 border-2 border-amber-400 p-4 rounded-2xl shadow-2xl text-white hidden z-20 flex items-start gap-3">
+                <div id="dialogue-avatar" class="text-3xl bg-slate-800 p-2 rounded-xl border border-amber-500/20">👤</div>
+                <div class="flex-1">
+                    <h4 id="dialogue-speaker" class="font-bold text-amber-400 text-sm">ผู้พูด</h4>
+                    <p id="dialogue-text" class="text-sm mt-1 text-slate-100">ข้อความสนทนาจะมาขึ้นตรงนี้...</p>
+                    <div class="text-[10px] text-amber-500/60 text-right mt-2 font-mono">กด SPACEBAR เพื่อไปต่อ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MINIGAME OVERLAY SYSTEM -->
+        <div id="screen-minigame" class="absolute inset-0 bg-slate-950/90 z-30 hidden flex flex-col items-center justify-center p-6 text-white">
+            <div class="w-full max-w-2xl bg-slate-900 border-2 border-amber-500 rounded-3xl overflow-hidden flex flex-col shadow-2xl">
+                <!-- Mini-game header -->
+                <div class="bg-slate-950 px-6 py-3 border-b border-slate-800 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-bold text-amber-400" id="minigame-title">มินิเกมหัวข้อ</h2>
+                        <p class="text-xs text-slate-400" id="minigame-desc">คำอธิบายมินิเกม</p>
+                    </div>
+                    <div class="bg-amber-500/20 text-amber-400 px-3 py-1 rounded-full text-xs font-bold" id="minigame-score-text">คะแนนเป้าหมาย: 100</div>
+                </div>
+
+                <!-- Mini-game container viewport -->
+                <div class="relative bg-slate-950 h-80 flex items-center justify-center overflow-hidden" id="minigame-viewport">
+                    <!-- Dynamic mini games will render custom HTML or Canvas elements inside here -->
+                </div>
+
+                <!-- Mini-game controls footer -->
+                <div class="bg-slate-900 px-6 py-3 border-t border-slate-800 flex justify-between items-center text-xs">
+                    <span class="text-slate-400" id="minigame-instruction">ปุ่มที่ใช้: Spacebar เท่านั้น</span>
+                    <button onclick="exitMinigame(false)" class="text-slate-400 hover:text-red-400 font-bold px-3 py-1 rounded transition">ยอมแพ้ภารกิจ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- EDUCATIONAL POPUP (Bottom Right Side - Does not block game loop) -->
+        <div id="educational-popup" class="absolute bottom-4 right-4 w-72 bg-slate-900/95 border-2 border-emerald-500 text-white rounded-2xl p-4 shadow-2xl transition-all duration-500 transform translate-y-full opacity-0 pointer-events-auto z-40">
+            <div class="flex justify-between items-start mb-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                    📖 ภูมิปัญญาสกลนคร
+                </span>
+                <button onclick="closeEduPopup()" class="text-slate-400 hover:text-white font-bold text-sm w-5 h-5 rounded-full flex items-center justify-center bg-slate-800 border border-slate-700">×</button>
+            </div>
+            <h3 id="edu-title" class="font-bold text-base text-amber-400">หัวข้อภูมิปัญญา</h3>
+            <p id="edu-content" class="text-xs text-slate-300 mt-1 leading-relaxed max-h-32 overflow-y-auto">เนื้อหาสาระสำคัญ...</p>
+            <div class="mt-2 text-[10px] text-emerald-500/70 font-semibold flex items-center justify-between">
+                <span>อ่านสะสมความรู้เพื่อรับโบนัส EXP และคะแนน!</span>
+                <span class="bg-emerald-950 px-1.5 py-0.5 rounded text-emerald-400">+50 EXP</span>
+            </div>
+        </div>
+
+        <!-- INVENTORY MODAL overlay -->
+        <div id="modal-inventory" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-6 text-white">
+            <div class="w-full max-w-md bg-slate-900 border-2 border-amber-500 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-bounce-short">
+                <div class="bg-slate-950 px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-amber-400 flex items-center gap-2">🎒 ย่ามเก็บของเจ้าเหมียว</h3>
+                    <button onclick="toggleInventoryModal()" class="text-slate-400 hover:text-white text-xl">×</button>
+                </div>
+                <div class="p-6 overflow-y-auto max-h-[300px]">
+                    <div id="inventory-grid" class="grid grid-cols-4 gap-4">
+                        <!-- Inventory cells populated by JS -->
+                    </div>
+                </div>
+                <div class="bg-slate-950 px-6 py-3 border-t border-slate-800 text-xs text-slate-400 text-center">
+                    เก็บของใช้จากการเดินทาง เพื่อทำอาหารสูตรพริกแกงหวายสกลนครสูตรโบราณ
+                </div>
+            </div>
+        </div>
+
+        <!-- END SCREEN overlay -->
+        <div id="screen-end" class="absolute inset-0 bg-slate-950/95 z-50 hidden flex flex-col items-center justify-center p-6 text-center text-white overflow-y-auto">
+            <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#10b981 1px, transparent 1px); background-size: 24px 24px;"></div>
+            <div class="relative z-10 max-w-xl flex flex-col items-center">
+                <div class="w-24 h-24 bg-gradient-to-tr from-amber-400 to-orange-400 rounded-full flex items-center justify-center text-5xl mb-4 shadow-xl border-4 border-white animate-pulse">🍲</div>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
+                    ภารกิจสำเร็จลุล่วง! 🎉
+                </h1>
+                <p class="text-amber-400 font-bold mt-2 text-lg">"ยินดีด้วย! คุณได้เรียนรู้การทำแกงหวายสกลนครครบทุกขั้นตอนแล้ว"</p>
+                <div class="text-emerald-300 italic text-sm mt-1">อาจารย์ทศพล: "แซ่บอยู่!" 😋</div>
+
+                <!-- Game Stats Panel -->
+                <div class="bg-slate-900 border border-emerald-500/30 rounded-2xl p-4 mt-6 w-full max-w-md grid grid-cols-2 gap-4 text-left text-sm">
+                    <div>
+                        <span class="text-slate-400">เลเวลสำเร็จ:</span>
+                        <div class="font-bold text-amber-400 text-lg" id="end-level">Lv.3</div>
+                    </div>
+                    <div>
+                        <span class="text-slate-400">คะแนนสะสมรวม:</span>
+                        <div class="font-bold text-amber-400 text-lg" id="end-score">2,500</div>
+                    </div>
+                    <div>
+                        <span class="text-slate-400">เวลาที่ใช้เล่น:</span>
+                        <div class="font-bold text-amber-400 text-lg" id="end-time">00:00 นาที</div>
+                    </div>
+                    <div>
+                        <span class="text-slate-400">ความรู้ที่ปลดล็อก:</span>
+                        <div class="font-bold text-amber-400 text-lg" id="end-knowledge">5 / 5 เรื่อง</div>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-slate-400">เปอร์เซ็นต์ความสำเร็จ:</span>
+                        <div class="w-full bg-slate-800 h-3 rounded-full mt-1 overflow-hidden border border-slate-700">
+                            <div class="bg-emerald-500 h-full w-[100%]" id="end-progress-bar"></div>
+                        </div>
+                        <div class="text-right text-xs mt-1 text-slate-300" id="end-progress-text">100%</div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 mt-8">
+                    <button onclick="location.reload()" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition border border-slate-600 active:scale-95">
+                        🔄 เล่นใหม่อีกครั้ง
+                    </button>
+                    <button onclick="shareGame()" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition border-b-4 border-emerald-700 active:scale-95">
+                        📤 แชร์ความภูมิใจ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /*
+          SOUND MANAGER
+          We use built-in Web Audio API to construct sound effects procedurally without loading external files.
+        */
+        const AudioFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playSynth(type, freq, duration, gainStart = 0.1) {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gainNode = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gainNode.gain.setValueAtTime(gainStart, this.ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                osc.connect(gainNode);
+                gainNode.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            },
+            click() { this.playSynth('sine', 600, 0.08); },
+            success() { 
+                this.playSynth('sine', 523.25, 0.1); 
+                setTimeout(() => this.playSynth('sine', 659.25, 0.1), 100);
+                setTimeout(() => this.playSynth('sine', 783.99, 0.2), 200);
+            },
+            chop() { this.playSynth('triangle', 180, 0.1, 0.2); },
+            boil() { this.playSynth('triangle', 90, 0.5, 0.15); },
+            levelUp() {
+                this.playSynth('sawtooth', 261.63, 0.1, 0.1);
+                setTimeout(() => this.playSynth('sawtooth', 329.63, 0.1, 0.1), 80);
+                setTimeout(() => this.playSynth('sawtooth', 392.00, 0.1, 0.1), 160);
+                setTimeout(() => this.playSynth('sawtooth', 523.25, 0.3, 0.2), 240);
+            },
+            fail() {
+                this.playSynth('sawtooth', 150, 0.3, 0.15);
+            }
+        };
+
+        // Educational Topics Definition
+        const KNOWLEDGE_ITEMS = {
+            rattan: {
+                title: "แกงหวายคืออะไร & หวายมาจากไหน?",
+                content: "หน่อหวาย (Rattan Shoot) คือยอดอ่อนของต้นหวายตากล้า มีรสขมนำหวานตาม สรรพคุณช่วยบำรุงน้ำดี แก้ร้อนใน และดับพิษไข้ โดยทั่วไปต้นหวายต้องปลูกนานถึง 2-3 ปี จึงจะสามารถสับเก็บหน่ออ่อนได้ โดยการสับต้องทำอย่างระมัดระวังเนื่องจากมีหนามแหลมคม!",
+                rewarded: false
+            },
+            yanang: {
+                title: "ใบย่านาง - ราชาดับร้อนแห่งเมนูอีสาน",
+                content: "ใบย่านางประกอบด้วยคลอโรฟิลล์ คาร์โบไฮเดรต และแคลเซียมสูง มีฤทธิ์เย็นตามตําราแพทย์แผนไทย ช่วยลดความร้อนในร่างกาย ปรับสมดุล และช่วยดึงรสชาติความหวานกลมกล่อมของเนื้อแกงออกมาชัดเจนขึ้น",
+                rewarded: false
+            },
+            mushroom: {
+                title: "เห็ดป่าแห่งเทือกเขาภูพาน",
+                content: "ผืนป่าบนทิวเขาภูพานเป็นแหล่งเก็บเห็ดธรรมชาติขนาดใหญ่ ในช่วงหน้าฝนจะพบเห็ดเผาะ เห็ดระโงก และเห็ดป่าหลากหลายชนิด เห็ดเป็นวัตถุดิบที่ปราศจากไขมันและช่วยเติมรสชาติอูมามิให้กับแกงถ้วยนี้!",
+                rewarded: false
+            },
+            paksangae: {
+                title: "ผักสะแงะ - กลิ่นอายเอกลักษณ์แกงหวายสกลนคร",
+                content: "ผักสะแงะเป็นพืชสมุนไพรตระกูลผักชี มีกลิ่นหอมแรงและรสชาติเผ็ดซ่าเล็กน้อย เป็นผักสมุนไพรท้องถิ่นที่ถือเป็นเอกลักษณ์เฉพาะของสูตรแกงหวายสกลนคร หากขาดไป จะไม่เรียกว่าเป็นสูตรแกงหวายสกลนครที่แท้จริง!",
+                rewarded: false
+            },
+            plara: {
+                title: "น้ำปลาร้า - จิตวิญญาณและความนัวของอีสาน",
+                content: "ปลาร้า (Pla-Ra) เกิดจากนวัตกรรมและภูมิปัญญาการถนอมอาหารยอดเยี่ยมของชาวอีสาน หมักปลาด้วยเกลือและรำข้าว มีแร่ธาตุวิตามิน และกรดอะมิโนที่สร้างรสชาตินัว กลมกล่อม และมีประโยชน์เมื่อปรุงสุกสะอาดยิ่งขึ้น",
+                rewarded: false
+            }
+        };
+
+        // Complete 16-Quest Sequence Config
+        const QUEST_LIST = [
+            { id: 0, title: "เควส 1: ขุดดินปลูกหวายใต้ร่มไม้ภูพาน", desc: "เดินไปที่สวนแปลงดินภูพานและสับ Space เพื่อปลูกหวาย", type: "planting" },
+            { id: 1, title: "เควส 2: ตามเก็บวัตถุดิบธรรมชาติจากภูพาน", desc: "เก็บใบย่านาง เห็ดป่า ฟักทอง บวบ ยอดฟักทอง และผักสะแงะ", type: "gather" },
+            { id: 2, title: "เควส 3: ซื้อเครื่องปรุงนัวที่ร้านขายของชำ", desc: "แวะไปคุยและซื้อไก่ พริก ตะไคร้ ปลาร้า เกลือ ชูรส น้ำปลา", type: "shop" },
+            { id: 3, title: "เควส 4: ปอกหนามและเปลือกนอกของหวายออก", desc: "เข้าไปที่โรงครัวเพื่อทําพิธีปอกหวายอย่างรวดเร็ว", type: "peel" },
+            { id: 4, title: "เควส 5: หั่นหวายเป็นท่อนพอดีคํา", desc: "เตรียมมีดและหั่นหน่อหวายผ่านจังหวะการกดปุ่ม", type: "chop" },
+            { id: 5, title: "เควส 6: ต้มหน่อหวายเพื่อตัดรสขม", desc: "ต้มหน่อหวายด้วยความร้อนและสับแช่ในน้ำเย็นจัด", type: "boil" },
+            { id: 6, title: "เควส 7: ตำข้าวเบือผสมใบย่านางรสเข้ม", desc: "ตําข้าวสารเหนียวแช่น้ำรวมกับใบย่านางเพื่อทําน้ำแกงเหนียวข้น", type: "mortar_yanang" },
+            { id: 7, title: "เควส 8: ตำพริกสดให้แหลกหอมสปริง", desc: "ตําพริกชี้ฟ้าสดสากในครกหินให้แหลกพอดีปรุง", type: "mortar_chili" },
+            { id: 8, title: "เควส 9: เตรียมหั่นฟักทองและทุบตะไคร้", desc: "หั่นฟักทองชิ้นใหญ่ และทุบเฉือนตะไคร้ให้มีกลิ่นระเหย", type: "prep_veggies" },
+            { id: 9, title: "เควส 10: ตั้งหม้อใส่เนื้อไก่และเครื่องแกงแรก", desc: "เรียงลําดับ ใส่ไก่ -> พริกตํา -> ตะไคร้ -> เกลือ -> ชูรส -> น้ำปลา", type: "cook_stage1" },
+            { id: 10, title: "เควส 11: ใส่ฟักทองและหวายต้ม", desc: "ลากเนื้อฟักทองหวานและหน่อหวายต้มสุกที่สะเด็ดน้ำลงไป", type: "cook_stage2" },
+            { id: 11, title: "เควส 12: ใส่น้ำย่านางคั้นเหนียวเข้มข้น", desc: "เทน้ำใบย่านางสีเขียวลงไปช่วยเป็นน้ำซุปแกงที่แสนดี", type: "cook_stage3" },
+            { id: 12, title: "เควส 13: เติมความนัวด้วยปลาร้าและเห็ดป่า", desc: "เทน้ำปลาร้า ต้มเห็ดป่า หั่นบวบเหลี่ยม และยอดฟักทองอ่อนลงต้ม", type: "cook_stage4" },
+            { id: 13, title: "เควส 14: ปิดไฟใส่ผักสะแงะหอมอบอวล", desc: "ใส่ผักสะแงะที่เป็นใบเด็ดสดเพื่อส่งกลิ่นหอมปิดท้ายแกง", type: "cook_stage5" },
+            { id: 14, title: "เควส 15: ตักเสิร์ฟแกงหวายสกลนครสุดยอด", desc: "ตักแกงร้อนๆ บรรจุลงชามกระเบื้องที่สวยงาม", type: "serve" },
+            { id: 15, title: "เควส 16: นำแกงหวายไปส่งให้อาจารย์ทศพล", desc: "เดินไปยังวิทยาลัยราชภัฏเพื่อส่งงานแก่อาจารย์ผู้ทรงคุณวุฒิ", type: "deliver" }
+        ];
+
+        // Core game state management
+        const Game = {
+            currentQuestIndex: 0,
+            score: 0,
+            exp: 0,
+            level: 1,
+            timeElapsed: 0,
+            startTime: null,
+            timerInterval: null,
+            inventory: [],
+            isInventoryOpen: false,
+            gatheredCount: { yanang: 0, mushroom: 0, pumpkin: 0, luffa: 0, shoots: 0, sangae: 0 },
+            rattanPlanted: false,
+            rattanGrown: false,
+            knowledgeOpened: 0,
+            // Canvas Engine Properties
+            canvas: null,
+            ctx: null,
+            player: {
+                x: 150,
+                y: 180,
+                width: 34,
+                height: 34,
+                speed: 3.5,
+                dirX: 0,
+                dirY: 0,
+                animFrame: 0,
+                lastDir: 'down'
+            },
+            keysPressed: {},
+            gameLoopId: null
+        };
+
+        // Static visual mapping coordinates (X, Y)
+        const Places = {
+            forest: { name: "ป่าภูพาน", x: 160, y: 150, w: 180, h: 180 },
+            soil: { name: "แปลงปลูกหวาย", x: 100, y: 250, r: 25 },
+            store: { name: "ร้านขายของชำ", x: 650, y: 160, w: 140, h: 140 },
+            kitchen: { name: "โรงครัวปรุงแกง", x: 680, y: 440, w: 160, h: 140 },
+            university: { name: "มรภ.สกลนคร", x: 180, y: 450, w: 180, h: 140 },
+            lake: { name: "หนองหาร", x: 420, y: 300, w: 150, h: 90 },
+            pagoda: { name: "วัดพระธาตุเชิงชุม", x: 430, y: 120, w: 120, h: 120 }
+        };
+
+        // Interactive entities on screen
+        const Entities = [
+            { id: 'soil', x: 100, y: 250, type: 'trigger', label: "แปลงดิน (Space: ปลูกหวาย)" },
+            { id: 'yanang', x: 260, y: 120, type: 'gather', label: "ใบย่านาง (Space: เก็บ)" },
+            { id: 'mushroom', x: 240, y: 220, type: 'gather', label: "เห็ดภูพาน (Space: เก็บ)" },
+            { id: 'pumpkin', x: 70, y: 90, type: 'gather', label: "ฟักทอง (Space: เก็บ)" },
+            { id: 'luffa', x: 120, y: 140, type: 'gather', label: "บวบหอม (Space: เก็บ)" },
+            { id: 'shoots', x: 200, y: 90, type: 'gather', label: "ยอดฟักทอง (Space: เก็บ)" },
+            { id: 'sangae', x: 310, y: 180, type: 'gather', label: "ผักสะแงะ (Space: เก็บ)" },
+            { id: 'shopkeeper', x: 630, y: 200, type: 'npc', label: "แม่ค้าชำ (Space: คุย/ซื้อ)" },
+            { id: 'kitchen_table', x: 730, y: 490, type: 'kitchen', label: "โต๊ะครัว (Space: ทำอาหาร)" },
+            { id: 'tosapon', x: 200, y: 490, type: 'npc', label: "อ.ทศพล (Space: คุย/ส่งงาน)" }
+        ];
+
+        // Utility Functions to switch screen panes
+        function showScreen(screenId) {
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-gameplay').classList.add('hidden');
+            document.getElementById('screen-minigame').classList.add('hidden');
+            document.getElementById('screen-end').classList.add('hidden');
+            
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // Start button trigger
+        function startGame() {
+            AudioFX.init();
+            AudioFX.click();
+            showScreen('screen-gameplay');
+            
+            Game.startTime = new Date();
+            Game.timerInterval = setInterval(() => {
+                Game.timeElapsed = Math.floor((new Date() - Game.startTime) / 1000);
+            }, 1000);
+            
+            initCanvas();
+            updateQuestDisplay();
+            spawnFloatingNotice("เริ่มเกม!", "นำพาน้องเหมียวส้มไปผจญภัยได้เลย!", "info");
+        }
+
+        // Helper to gain Experience points
+        function earnExp(amount) {
+            Game.exp += amount;
+            const xpNeeded = Game.level * 100;
+            if (Game.exp >= xpNeeded) {
+                Game.exp -= xpNeeded;
+                Game.level++;
+                AudioFX.levelUp();
+                spawnFloatingNotice("✨ LEVEL UP!", `เจ้าเหมียวเลื่อนเป็นเลเวล ${Game.level} แล้ว!`, "success");
+            }
+            updateHUD();
+        }
+
+        function addScore(amount) {
+            Game.score += amount;
+            updateHUD();
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-level').innerText = `Lv.${Game.level}`;
+            const xpPercent = Math.min(100, (Game.exp / (Game.level * 100)) * 100);
+            document.getElementById('hud-exp-bar').style.width = `${xpPercent}%`;
+            document.getElementById('hud-score').innerText = Game.score;
+        }
+
+        // Map setup
+        function initCanvas() {
+            Game.canvas = document.getElementById('gameCanvas');
+            Game.ctx = Game.canvas.getContext('2d');
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Set keyboard event listeners
+            window.addEventListener('keydown', (e) => {
+                Game.keysPressed[e.key] = true;
+                if (e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault(); // Prevent scrolling
+                }
+            });
+            window.addEventListener('keyup', (e) => {
+                Game.keysPressed[e.key] = false;
+                if (e.key === ' ' || e.key === 'Spacebar') {
+                    triggerSpaceAction();
+                }
+            });
+            
+            // Start Animation Loop
+            if (Game.gameLoopId) cancelAnimationFrame(Game.gameLoopId);
+            Game.gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function resizeCanvas() {
+            if (!Game.canvas) return;
+            // Virtual layout size aspect ratio 900x560
+            Game.canvas.width = 900;
+            Game.canvas.height = 560;
+        }
+
+        // Handle virtual layout controls for touch devices
+        function handleVirtualKey(key, isPressed) {
+            Game.keysPressed[key] = isPressed;
+        }
+
+        // Custom 2D drawings for background tiles
+        function gameLoop(timestamp) {
+            updatePlayerMovement();
+            renderMap();
+            Game.gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function updatePlayerMovement() {
+            let dx = 0;
+            let dy = 0;
+            
+            if (Game.keysPressed['ArrowUp'] || Game.keysPressed['w']) { dy = -1; Game.player.lastDir = 'up'; }
+            if (Game.keysPressed['ArrowDown'] || Game.keysPressed['s']) { dy = 1; Game.player.lastDir = 'down'; }
+            if (Game.keysPressed['ArrowLeft'] || Game.keysPressed['a']) { dx = -1; Game.player.lastDir = 'left'; }
+            if (Game.keysPressed['ArrowRight'] || Game.keysPressed['d']) { dx = 1; Game.player.lastDir = 'right'; }
+            
+            // Normalize
+            if (dx !== 0 && dy !== 0) {
+                dx *= 0.7071;
+                dy *= 0.7071;
+            }
+            
+            let nextX = Game.player.x + dx * Game.player.speed;
+            let nextY = Game.player.y + dy * Game.player.speed;
+            
+            // Collision map boundaries
+            if (nextX >= 20 && nextX <= 880 - Game.player.width) Game.player.x = nextX;
+            if (nextY >= 60 && nextY <= 540 - Game.player.height) Game.player.y = nextY;
+            
+            if (dx !== 0 || dy !== 0) {
+                Game.player.animFrame += 0.15;
+            } else {
+                Game.player.animFrame = 0;
+            }
+        }
+
+        // Main Renderer
+        function renderMap() {
+            const ctx = Game.ctx;
+            if (!ctx) return;
+            
+            // Clear screen
+            ctx.fillStyle = "#1e3a1e"; // default soft dark grass
+            ctx.fillRect(0, 0, Game.canvas.width, Game.canvas.height);
+            
+            // Draw background land texture curves
+            ctx.strokeStyle = "#14532d";
+            ctx.lineWidth = 6;
+            
+            // Main curvy nature trail
+            ctx.beginPath();
+            ctx.moveTo(150, 250);
+            ctx.bezierCurveTo(300, 280, 400, 180, 500, 220);
+            ctx.bezierCurveTo(600, 260, 680, 350, 750, 450);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(730, 200);
+            ctx.quadraticCurveTo(550, 240, 450, 450);
+            ctx.stroke();
+            
+            // Draw Nong Han Lake
+            ctx.fillStyle = "#1e40af";
+            ctx.beginPath();
+            ctx.ellipse(Places.lake.x, Places.lake.y, Places.lake.w/2, Places.lake.h/2, 0.1, 0, Math.PI * 2);
+            ctx.fill();
+            // Lake wave detail
+            ctx.strokeStyle = "#3b82f6";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(Places.lake.x - 30, Places.lake.y);
+            ctx.lineTo(Places.lake.x + 30, Places.lake.y);
+            ctx.moveTo(Places.lake.x - 10, Places.lake.y + 15);
+            ctx.lineTo(Places.lake.x + 20, Places.lake.y + 15);
+            ctx.stroke();
+            
+            // Draw Wooden Bridge on Lake side
+            ctx.fillStyle = "#78350f";
+            ctx.fillRect(Places.lake.x - 5, Places.lake.y - 45, 15, 90);
+            ctx.fillStyle = "#451a03";
+            ctx.fillRect(Places.lake.x - 7, Places.lake.y - 45, 2, 90);
+            ctx.fillRect(Places.lake.x + 10, Places.lake.y - 45, 2, 90);
+
+            // Draw Landmark pagodas in Nong Han Side (Phra That Choeng Chum)
+            ctx.fillStyle = "#eab308"; // Golden Pagoda
+            ctx.beginPath();
+            ctx.moveTo(Places.pagoda.x, Places.pagoda.y + 60);
+            ctx.lineTo(Places.pagoda.x - 20, Places.pagoda.y + 60);
+            ctx.lineTo(Places.pagoda.x, Places.pagoda.y);
+            ctx.lineTo(Places.pagoda.x + 20, Places.pagoda.y + 60);
+            ctx.fill();
+            ctx.fillStyle = "#ca8a04";
+            ctx.fillRect(Places.pagoda.x - 15, Places.pagoda.y + 60, 30, 15);
+
+            // Draw Phu Phan Forest Area decoration
+            ctx.fillStyle = "#064e3b";
+            ctx.beginPath();
+            ctx.arc(80, 100, 35, 0, Math.PI*2);
+            ctx.arc(140, 80, 40, 0, Math.PI*2);
+            ctx.arc(200, 110, 35, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Draw soil planting patch
+            ctx.fillStyle = "#7c2d12"; // Rich dirt
+            ctx.beginPath();
+            ctx.arc(Places.soil.x, Places.soil.y, Places.soil.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#451a03";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            if (Game.rattanPlanted) {
+                // If planted, draw the rattan plant growth stage
+                ctx.fillStyle = "#22c55e"; // Green shoot
+                if (Game.rattanGrown) {
+                    ctx.fillStyle = "#854d0e"; // Mature stalks
+                    ctx.fillRect(Places.soil.x - 8, Places.soil.y - 30, 6, 32);
+                    ctx.fillRect(Places.soil.x + 2, Places.soil.y - 25, 6, 27);
+                    // Leaf crown
+                    ctx.fillStyle = "#15803d";
+                    ctx.beginPath();
+                    ctx.arc(Places.soil.x - 5, Places.soil.y - 32, 10, 0, Math.PI*2);
+                    ctx.arc(Places.soil.x + 5, Places.soil.y - 27, 8, 0, Math.PI*2);
+                    ctx.fill();
+                } else {
+                    // Seedling
+                    ctx.beginPath();
+                    ctx.moveTo(Places.soil.x, Places.soil.y);
+                    ctx.quadraticCurveTo(Places.soil.x - 10, Places.soil.y - 15, Places.soil.x - 12, Places.soil.y - 12);
+                    ctx.moveTo(Places.soil.x, Places.soil.y);
+                    ctx.quadraticCurveTo(Places.soil.x + 10, Places.soil.y - 12, Places.soil.x + 12, Places.soil.y - 8);
+                    ctx.strokeStyle = "#22c55e";
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+            }
+
+            // Draw Grocery Store Building
+            ctx.fillStyle = "#b45309";
+            ctx.fillRect(Places.store.x, Places.store.y, Places.store.w, Places.store.h - 30);
+            ctx.fillStyle = "#f59e0b"; // Store canopy
+            ctx.fillRect(Places.store.x - 10, Places.store.y, Places.store.w + 20, 25);
+            ctx.fillStyle = "#1e293b"; // Store window/counter
+            ctx.fillRect(Places.store.x + 20, Places.store.y + 40, Places.store.w - 40, 50);
+
+            // Draw School / Rajabhat University Building
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(Places.university.x, Places.university.y, Places.university.w, Places.university.h - 20);
+            ctx.fillStyle = "#475569";
+            ctx.fillRect(Places.university.x + 10, Places.university.y - 30, Places.university.w - 20, 30);
+            ctx.fillStyle = "#e2e8f0"; // Pillars
+            for (let i = 0; i < 4; i++) {
+                ctx.fillRect(Places.university.x + 20 + i*40, Places.university.y + 30, 10, 70);
+            }
+            // Logo sign
+            ctx.fillStyle = "#1e3a8a";
+            ctx.fillRect(Places.university.x + 40, Places.university.y - 15, 100, 20);
+
+            // Draw Kitchen Building
+            ctx.fillStyle = "#7c2d12";
+            ctx.fillRect(Places.kitchen.x, Places.kitchen.y, Places.kitchen.w, Places.kitchen.h - 20);
+            ctx.fillStyle = "#b45309"; // Straw/Tile Roof style
+            ctx.beginPath();
+            ctx.moveTo(Places.kitchen.x - 10, Places.kitchen.y);
+            ctx.lineTo(Places.kitchen.x + Places.kitchen.w/2, Places.kitchen.y - 40);
+            ctx.lineTo(Places.kitchen.x + Places.kitchen.w + 10, Places.kitchen.y);
+            ctx.fill();
+
+            // Draw Entities and Gatherable Items
+            Entities.forEach(ent => {
+                if (ent.type === 'gather') {
+                    // Check if already gathered
+                    if (Game.gatheredCount[ent.id] > 0) return;
+                    
+                    // Draw Gatherable icon badge
+                    ctx.fillStyle = "#0284c7";
+                    ctx.beginPath();
+                    ctx.arc(ent.x, ent.y, 14, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "14px Arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    let emoji = "🌿";
+                    if (ent.id === 'yanang') emoji = "🍃";
+                    if (ent.id === 'mushroom') emoji = "🍄";
+                    if (ent.id === 'pumpkin') emoji = "🎃";
+                    if (ent.id === 'luffa') emoji = "🥒";
+                    if (ent.id === 'shoots') emoji = "🌱";
+                    if (ent.id === 'sangae') emoji = "☘️";
+                    ctx.fillText(emoji, ent.x, ent.y);
+                } else if (ent.id === 'shopkeeper') {
+                    // Draw Shopkeeper NPC
+                    ctx.fillStyle = "#ec4899";
+                    ctx.beginPath();
+                    ctx.arc(ent.x, ent.y, 14, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillText("👩", ent.x, ent.y + 1);
+                } else if (ent.id === 'tosapon') {
+                    // Draw Professor Tosapon NPC
+                    ctx.fillStyle = "#a855f7";
+                    ctx.beginPath();
+                    ctx.arc(ent.x, ent.y, 14, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillText("👨‍🏫", ent.x, ent.y + 1);
+                } else if (ent.id === 'kitchen_table') {
+                    // Table icon
+                    ctx.fillStyle = "#1e293b";
+                    ctx.fillRect(ent.x - 15, ent.y - 15, 30, 30);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "14px Arial";
+                    ctx.fillText("🍲", ent.x, ent.y + 2);
+                }
+            });
+
+            // Draw Main Character (Orange Cat with Red Scarf)
+            const cat = Game.player;
+            const bounce = Math.sin(cat.animFrame) * 3;
+            
+            ctx.save();
+            ctx.translate(cat.x + cat.width/2, cat.y + cat.height/2 + bounce);
+            
+            // Draw Cat Body (Orange)
+            ctx.fillStyle = "#f97316";
+            ctx.beginPath();
+            ctx.arc(0, 5, 12, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Draw Cat Head
+            ctx.beginPath();
+            ctx.arc(0, -7, 10, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Cat Ears
+            ctx.beginPath();
+            ctx.moveTo(-9, -12);
+            ctx.lineTo(-4, -20);
+            ctx.lineTo(-1, -14);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(9, -12);
+            ctx.lineTo(4, -20);
+            ctx.lineTo(1, -14);
+            ctx.fill();
+
+            // Cat Eyes
+            ctx.fillStyle = "#000000";
+            ctx.beginPath();
+            ctx.arc(-3, -7, 1.5, 0, Math.PI*2);
+            ctx.arc(3, -7, 1.5, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Red Scarf
+            ctx.fillStyle = "#ef4444";
+            ctx.fillRect(-8, 1, 16, 4);
+            ctx.beginPath();
+            ctx.moveTo(4, 3);
+            ctx.lineTo(8, 12);
+            ctx.lineTo(12, 8);
+            ctx.fill();
+
+            ctx.restore();
+
+            // Draw interaction prompt if nearby
+            const closeEnt = getNearbyEntity();
+            if (closeEnt) {
+                ctx.fillStyle = "#ffffff";
+                ctx.strokeStyle = "#000000";
+                ctx.lineWidth = 3;
+                ctx.font = "bold 13px Sarabun";
+                ctx.textAlign = "center";
+                ctx.strokeText(closeEnt.label, cat.x + cat.width/2, cat.y - 15);
+                ctx.fillText(closeEnt.label, cat.x + cat.width/2, cat.y - 15);
+            }
+        }
+
+        // Distance check helper
+        function getNearbyEntity() {
+            const cat = Game.player;
+            for (let i = 0; i < Entities.length; i++) {
+                const ent = Entities[i];
+                const dx = ent.x - (cat.x + cat.width/2);
+                const dy = ent.y - (cat.y + cat.height/2);
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 40) {
+                    return ent;
+                }
+            }
+            return null;
+        }
+
+        // Interactive Key triggers based on player's proximity and quest stage
+        function triggerSpaceAction() {
+            if (document.getElementById('dialogue-box').style.display === 'flex') {
+                advanceDialogue();
+                return;
+            }
+            
+            const ent = getNearbyEntity();
+            if (!ent) return;
+            
+            AudioFX.click();
+            
+            // Trigger customized logic based on entity ID
+            if (ent.id === 'soil') {
+                if (Game.currentQuestIndex === 0) {
+                    startMinigame_Planting();
+                } else if (Game.currentQuestIndex === 1 && Game.rattanGrown) {
+                    // Harvest rattan
+                    Game.inventory.push({ id: 'rattan_shoot', name: "หน่อหวายภูพาน", icon: "🌾" });
+                    spawnFloatingNotice("เก็บหน่อหวาย!", "ได้รับหน่อหวายป่าต้นแก่สำเร็จ!", "success");
+                    triggerEducationalPopup('rattan');
+                    earnExp(50);
+                    addScore(200);
+                    checkGatherComplete();
+                } else {
+                    spawnFloatingNotice("แปลงปลูกหวาย", "ตอนนี้ยังไม่ถึงเวลาปลูกหรือเก็บเกี่ยว", "info");
+                }
+            } 
+            else if (ent.type === 'gather') {
+                if (Game.currentQuestIndex === 1) {
+                    if (Game.gatheredCount[ent.id] === 0) {
+                        Game.gatheredCount[ent.id] = 1;
+                        let ThaiName = ent.label.split(" (")[0];
+                        Game.inventory.push({ id: ent.id, name: ThaiName, icon: "🌿" });
+                        spawnFloatingNotice("เก็บสำเร็จ!", `ได้วัตถุดิบ ${ThaiName} แล้ว!`, "success");
+                        earnExp(30);
+                        addScore(100);
+                        
+                        // Trigger specific Educational Popups
+                        if (ent.id === 'yanang') triggerEducationalPopup('yanang');
+                        if (ent.id === 'mushroom') triggerEducationalPopup('mushroom');
+                        if (ent.id === 'sangae') triggerEducationalPopup('paksangae');
+                        
+                        checkGatherComplete();
+                    }
+                } else {
+                    spawnFloatingNotice("ยังเก็บไม่ได้", "คุณต้องทำภารกิจตามลำดับนะเหมียว!", "info");
+                }
+            }
+            else if (ent.id === 'shopkeeper') {
+                if (Game.currentQuestIndex === 2) {
+                    startDialogue("แม่ค้าร้านของชำ", "สวัสดีจ้าเหมียวส้ม! อาจารย์ฝากมาซื้อของปรุงแกงใช่ไหมล่ะ? ฉันรวมของสดทั้งน่องไก่, พริกสด, ตะไคร้หอม, และปลาร้าน้ำดีไว้ให้แล้วนะ จ่ายเพียง 150 คะแนนจ้า!", [
+                        { text: "ตกลงซื้อวัตถุดิบเลย", action: buyShopIngredients }
+                    ]);
+                } else {
+                    startDialogue("แม่ค้าร้านของชำ", "แวะมาคุยเฉยๆ เหรอจ๊ะเหมียวส้ม? ตลาดวันนี้มีหวายสดใหม่รอคนมาแกงนะจ๊ะ", []);
+                }
+            }
+            else if (ent.id === 'kitchen_table') {
+                handleKitchenTableInteract();
+            }
+            else if (ent.id === 'tosapon') {
+                if (Game.currentQuestIndex === 15) {
+                    startDialogue("อาจารย์ทศพล", "อู้หู! กลิ่นหอมฟุ้งระเหยขึ้นมาเลยแกงหวายชามนี้... เหมียวส้มขอลองชิมหน่อยซิ... ซวบ...", [
+                        { text: "รอฟังผลวิจารณ์", action: finishGame }
+                    ]);
+                } else {
+                    startDialogue("อาจารย์ทศพล", "ว่าไงเจ้าเหมียว! อย่าลืมไปเอาหวายป่าที่ภูพานมาแกงปรุงแบบพื้นบ้านสูตรเด็ดล่ะ! ผมรออยู่นะ!", []);
+                }
+            }
+        }
+
+        function handleKitchenTableInteract() {
+            if (Game.currentQuestIndex < 3) {
+                spawnFloatingNotice("โรงครัว", "คุณต้องหาวัตถุดิบทั้งหมดก่อนจึงจะเข้ามาใช้ห้องครัวนะเหมียว!", "info");
+                return;
+            }
+            
+            switch (Game.currentQuestIndex) {
+                case 3: // Peel Rattan
+                    startMinigame_PeelRattan();
+                    break;
+                case 4: // Chop Rattan
+                    startMinigame_ChopRattan();
+                    break;
+                case 5: // Boil Rattan
+                    startMinigame_BoilRattan();
+                    break;
+                case 6: // Mortar Yanang
+                    startMinigame_Mortar('yanang');
+                    break;
+                case 7: // Mortar Chili
+                    startMinigame_Mortar('chili');
+                    break;
+                case 8: // Prep pumpkin / lemongrass
+                    startMinigame_PrepVeggies();
+                    break;
+                case 9: // Cooking stage 1
+                case 10:
+                case 11:
+                case 12:
+                case 13:
+                    startMinigame_CookingStages();
+                    break;
+                case 14: // Serve Bowl
+                    serveBowlCompletion();
+                    break;
+                default:
+                    spawnFloatingNotice("ห้องครัว", "ทำแกงสำเร็จไปแล้วจ้า พานำส่งให้อาจารย์ทศพลกันเถอะ!", "success");
+            }
+        }
+
+        let dialogueQueue = [];
+        let dialogueCallback = null;
+
+        function startDialogue(speaker, text, options = []) {
+            document.getElementById('dialogue-speaker').innerText = speaker;
+            document.getElementById('dialogue-text').innerText = text;
+            
+            const avatar = speaker.includes("แม่ค้า") ? "👩" : (speaker.includes("อาจารย์") ? "👨‍🏫" : "🐱");
+            document.getElementById('dialogue-avatar').innerText = avatar;
+            
+            dialogueCallback = options.length > 0 ? options[0].action : null;
+            document.getElementById('dialogue-box').style.display = 'flex';
+        }
+
+        function advanceDialogue() {
+            document.getElementById('dialogue-box').style.display = 'none';
+            if (dialogueCallback) {
+                const cb = dialogueCallback;
+                dialogueCallback = null;
+                cb();
+            }
+        }
+
+        function toggleInventoryModal() {
+            Game.isInventoryOpen = !Game.isInventoryOpen;
+            const modal = document.getElementById('modal-inventory');
+            if (Game.isInventoryOpen) {
+                modal.classList.remove('hidden');
+                renderInventory();
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderInventory() {
+            const grid = document.getElementById('inventory-grid');
+            grid.innerHTML = '';
+            
+            // Render 12 inventory slots
+            for (let i = 0; i < 12; i++) {
+                const item = Game.inventory[i];
+                const cell = document.createElement('div');
+                cell.className = "w-16 h-16 bg-slate-800 border-2 border-slate-700 rounded-xl flex flex-col items-center justify-center text-xs relative";
+                
+                if (item) {
+                    cell.innerHTML = `
+                        <span class="text-2xl">${item.icon || '📦'}</span>
+                        <span class="text-[9px] text-amber-400 absolute bottom-1 truncate w-full text-center px-1">${item.name}</span>
+                    `;
+                } else {
+                    cell.innerHTML = `<span class="text-slate-600 font-bold">-</span>`;
+                }
+                grid.appendChild(cell);
+            }
+        }
+
+        function buyShopIngredients() {
+            // Remove 150 points for raw supplies
+            addScore(-150);
+            
+            // Add ingredients to inventory
+            Game.inventory.push(
+                { id: 'chicken', name: "เนื้อไก่สด", icon: "🍗" },
+                { id: 'chili_fresh', name: "พริกสด", icon: "🌶️" },
+                { id: 'lemongrass', name: "ตะไคร้", icon: "🎋" },
+                { id: 'plara_sauce', name: "น้ำปลาร้า", icon: "🏺" },
+                { id: 'salt', name: "เกลือ", icon: "🧂" },
+                { id: 'msg', name: "ผงนัว", icon: "❄️" },
+                { id: 'fish_sauce', name: "น้ำปลา", icon: "🍼" }
+            );
+            triggerEducationalPopup('plara');
+            spawnFloatingNotice("ชำระของชำสำเร็จ!", "ได้รับเครื่องแกงครบถ้วน เดินทางไปโรงครัวกันเลย!", "success");
+            earnExp(60);
+            nextQuest();
+        }
+
+        function checkGatherComplete() {
+            const hasRattan = Game.inventory.some(i => i.id === 'rattan_shoot');
+            const g = Game.gatheredCount;
+            if (hasRattan && g.yanang && g.mushroom && g.pumpkin && g.luffa && g.shoots && g.sangae) {
+                spawnFloatingNotice("สุดยอด!", "เก็บพืชป่าภูพานครบแล้ว! ต่อไปแวะซื้อของที่ร้านชำนะเหมียว", "success");
+                nextQuest();
+            }
+        }
+
+        function nextQuest() {
+            Game.currentQuestIndex++;
+            updateQuestDisplay();
+            saveGameProgress();
+        }
+
+        function updateQuestDisplay() {
+            const quest = QUEST_LIST[Game.currentQuestIndex];
+            if (quest) {
+                document.getElementById('hud-active-quest').innerText = quest.title;
+                spawnFloatingNotice("เริ่มภารกิจย่อยใหม่", quest.desc, "info");
+            }
+        }
+
+        let minigameTimer = null;
+        let minigameScore = 0;
+        let scaleFactor = 1;
+
+        function enterMinigame(title, desc, scoreTarget) {
+            document.getElementById('minigame-title').innerText = title;
+            document.getElementById('minigame-desc').innerText = desc;
+            document.getElementById('minigame-score-text').innerText = `เป้าหมาย: ${scoreTarget}`;
+            document.getElementById('screen-minigame').classList.remove('hidden');
+            minigameScore = 0;
+        }
+
+        function exitMinigame(success) {
+            document.getElementById('screen-minigame').classList.add('hidden');
+            clearInterval(minigameTimer);
+            document.getElementById('minigame-viewport').innerHTML = '';
+            
+            if (success) {
+                AudioFX.success();
+                earnExp(100);
+                addScore(500);
+                nextQuest();
+            } else {
+                AudioFX.fail();
+                spawnFloatingNotice("พ่ายแพ้ภารกิจ!", "ลองท้าทายใหม่อีกครั้งเพื่อความสามัคคีนะเหมียว!", "error");
+            }
+        }
+
+        function startMinigame_Planting() {
+            enterMinigame("ปลูกหวายภูพาน", "กด SPACEBAR ให้เข็มจังหวะตกที่แถบพื้นที่สีเขียวเพื่อดูแลต้นไม้!", 100);
+            const vp = document.getElementById('minigame-viewport');
+            
+            vp.innerHTML = `
+                <div class="flex flex-col items-center w-full max-w-xs">
+                    <div class="text-5xl mb-4" id="plant-stage-icon">🌱</div>
+                    <div class="text-sm font-semibold mb-2" id="plant-step-text">ขั้นตอนที่ 1: ขุดหลุมปูหน้าดิน</div>
+                    <div class="w-full bg-slate-800 h-6 rounded-full relative overflow-hidden border border-slate-700">
+                        <div class="absolute left-[40%] right-[40%] bg-green-500 h-full"></div>
+                        <div id="gauge-pin" class="absolute top-0 bottom-0 w-2 bg-yellow-400 left-[5%] transition-all duration-75"></div>
+                    </div>
+                    <button onclick="pressPlantingSpace()" class="mt-6 px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl active:scale-95 transition">
+                        กด SPACE BAR / ค้อนทุบ
+                    </button>
+                </div>
+            `;
+            
+            let pos = 5;
+            let speed = 4;
+            minigameTimer = setInterval(() => {
+                pos += speed;
+                if (pos > 95 || pos < 5) speed = -speed;
+                const pin = document.getElementById('gauge-pin');
+                if (pin) pin.style.left = `${pos}%`;
+            }, 30);
+
+            let step = 1;
+            window.pressPlantingSpace = function() {
+                // Check if pos falls within 40% and 60%
+                if (pos >= 40 && pos <= 60) {
+                    AudioFX.chop();
+                    step++;
+                    if (step === 2) {
+                        document.getElementById('plant-stage-icon').innerText = "🌾";
+                        document.getElementById('plant-step-text').innerText = "ขั้นตอนที่ 2: วางกลบเมล็ดหวายป่า";
+                        spawnFloatingNotice("เยยอดเยี่ยม!", "กลบดินลงหลุมแล้ว รดน้ำต่อ!", "success");
+                    } else if (step === 3) {
+                        document.getElementById('plant-stage-icon').innerText = "🌧️";
+                        document.getElementById('plant-step-text').innerText = "ขั้นตอนที่ 3: รดน้ำซับความเย็นชื้น";
+                        spawnFloatingNotice("รดน้ำแล้ว!", "รอคอยผลผลิตโตเต็มวัย!", "success");
+                    } else if (step > 3) {
+                        Game.rattanPlanted = true;
+                        // Trigger timeout simulation of grown
+                        setTimeout(() => {
+                            Game.rattanGrown = true;
+                            spawnFloatingNotice("หวายภูพานเติบโต!", "หน่อสูงได้ที่ประมาณ 60 เซนติเมตรแล้ว เก็บเกี่ยวเหมียว!", "success");
+                        }, 5000);
+                        exitMinigame(true);
+                    }
+                } else {
+                    AudioFX.fail();
+                    spawnFloatingNotice("วืด!", "กดให้ตรงจังหวะสีเขียวนะเหมียว!", "error");
+                }
+            };
+        }
+
+        function startMinigame_PeelRattan() {
+            enterMinigame("มินิเกมปอกหนามหวาย", "ใช้เมาส์หรือการกดลากมีดตามแนวเส้นสีขาวของหวาย เพื่อเคลียร์หนามพิษ!", 100);
+            const vp = document.getElementById('minigame-viewport');
+            
+            vp.innerHTML = `
+                <div class="relative w-80 h-44 bg-slate-900 border-2 border-dashed border-slate-700 rounded-2xl flex items-center justify-center">
+                    <div class="absolute h-4 w-72 bg-amber-800 rounded-full flex justify-between px-6" id="rattan-bark">
+                        <span class="text-xs text-amber-300">📌</span>
+                        <span class="text-xs text-amber-300">💥</span>
+                        <span class="text-xs text-amber-300">💥</span>
+                        <span class="text-xs text-amber-300">🏁</span>
+                    </div>
+                    <div id="knife-cursor" class="absolute left-6 w-12 h-12 text-3xl cursor-pointer pointer-events-auto transition-all" onmousedown="startPeelDrag(event)" ontouchstart="startPeelDrag(event)">🔪</div>
+                </div>
+                <div class="absolute bottom-2 text-center text-xs text-slate-400">คลิกลากมีดจากซ้าย ➡️ ไปขวา เพื่อปอกหนามให้สะอาด</div>
+            `;
+            
+            let dragging = false;
+            window.startPeelDrag = function(e) {
+                dragging = true;
+                AudioFX.chop();
+            };
+            
+            vp.onmousemove = function(e) {
+                if (!dragging) return;
+                const rect = vp.getBoundingClientRect();
+                const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+                const knife = document.getElementById('knife-cursor');
+                if (knife) {
+                    let clampedX = Math.max(20, Math.min(260, x - 20));
+                    knife.style.left = `${clampedX}px`;
+                    if (clampedX >= 250) {
+                        dragging = false;
+                        document.getElementById('rattan-bark').style.backgroundColor = "#eab308"; // peeled yellow look
+                        spawnFloatingNotice("ปอกหมดจด!", "หนามและเปลือกนอกหวายสลายไปหมดสิ้น!", "success");
+                        setTimeout(() => exitMinigame(true), 800);
+                    }
+                }
+            };
+            vp.ontouchmove = vp.onmousemove;
+            window.onmouseup = () => dragging = false;
+            window.ontouchend = () => dragging = false;
+        }
+
+        function startMinigame_ChopRattan() {
+            enterMinigame("สับหน่อหวายเป็นชิ้นพอดีคำ", "กดปุ่ม SPACEBAR ให้ตรงขีดเพื่อสับหน่อหวายเป็นท่อนสม่ำเสมอ!", 100);
+            const vp = document.getElementById('minigame-viewport');
+            
+            vp.innerHTML = `
+                <div class="flex flex-col items-center w-64">
+                    <div class="text-4xl mb-4" id="chop-emoji">🪵🔪</div>
+                    <div class="text-sm font-bold text-slate-300 mb-2">สับได้: <span id="chop-count-text">0</span> / 6 ชิ้น</div>
+                    <button onclick="pressChop()" class="px-6 py-2.5 bg-rose-500 hover:bg-rose-400 text-slate-950 font-bold rounded-xl active:scale-95 transition">
+                        🪓 กดสับด้วย Spacebar!
+                    </button>
+                </div>
+            `;
+            
+            let count = 0;
+            window.pressChop = function() {
+                count++;
+                AudioFX.chop();
+                const em = document.getElementById('chop-emoji');
+                em.classList.add('animate-shake');
+                setTimeout(() => em.classList.remove('animate-shake'), 150);
+                
+                document.getElementById('chop-count-text').innerText = count;
+                if (count >= 6) {
+                    spawnFloatingNotice("หั่นสำเร็จ!", "ท่อนแกงพอดีคำ สวยงาม!", "success");
+                    exitMinigame(true);
+                }
+            };
+        }
+
+        function startMinigame_BoilRattan() {
+            enterMinigame("ต้มหน่อหวายลดรสขมฝาด", "กระแทกปุ่มเร่งฟืนเพื่อนำหวายต้มในน้ำเดือด 10 นาที (จำลอง) ให้จบคอร์ส!", 100);
+            const vp = document.getElementById('minigame-viewport');
+            
+            vp.innerHTML = `
+                <div class="flex flex-col items-center w-64">
+                    <div class="text-5xl mb-4 animate-bounce">♨️🍲</div>
+                    <div class="text-xs text-amber-300 text-center mb-2 leading-relaxed font-semibold">
+                        เคล็ดลับ: ต้มในน้ำเดือด 10 นาทีแล้วแช่น้ำเย็นจัดทันที จะช่วยรักษาเนื้อสัมผัสสีเขียวสด และล้างความขมจัดของแกงหวายออกได้เป็นอย่างดี!
+                    </div>
+                    <div class="w-full bg-slate-800 h-4 rounded-full mt-2 overflow-hidden">
+                        <div id="boil-progress" class="bg-gradient-to-r from-red-500 to-yellow-500 h-full w-[10%] transition-all duration-300"></div>
+                    </div>
+                    <button onclick="pressBoilFuel()" class="mt-4 px-6 py-2 bg-orange-600 hover:bg-orange-500 font-bold rounded-xl transition active:scale-95">🔥 เร่งฟืนต้ม</button>
+                </div>
+            `;
+            
+            let progress = 10;
+            window.pressBoilFuel = function() {
+                progress += 15;
+                AudioFX.boil();
+                document.getElementById('boil-progress').style.width = `${progress}%`;
+                if (progress >= 100) {
+                    spawnFloatingNotice("ต้มเสร็จสิ้น!", "ผ่านกระบวนการสะเด็ดรสขมออกเรียบร้อย!", "success");
+                    exitMinigame(true);
+                }
+            };
+        }
+
+        function startMinigame_Mortar(type) {
+            const title = type === 'yanang' ? "ตำข้าวเบือผสมย่านาง" : "ตำพริกสดให้แหลก";
+            const desc = type === 'yanang' ? "กะแทกปุ่ม Space รัวๆ เพื่อบดคั้นน้ำข้าวเหนียวใบย่านางเข้มข้น" : "ตําพริกชี้ฟ้าแดงพอแตกหยาบๆ";
+            enterMinigame(title, desc, 10);
+            
+            const vp = document.getElementById('minigame-viewport');
+            vp.innerHTML = `
+                <div class="flex flex-col items-center w-64">
+                    <div class="relative w-28 h-28 flex items-center justify-center bg-slate-800 border-4 border-slate-600 rounded-full" id="mortar-base">
+                        <span class="text-4xl">🥣</span>
+                        <div id="pestle-stone" class="absolute top-[-20px] text-4xl transform rotate-12 transition-all">🔨</div>
+                    </div>
+                    <div class="text-xs mt-4 text-amber-400" id="mortar-count-label">ตำไปแล้ว: 0 / 10 ครั้ง</div>
+                    <button onclick="pressPound()" class="mt-4 px-6 py-2 bg-slate-700 hover:bg-slate-600 font-bold rounded-xl transition">💥 ตำรัวๆ</button>
+                </div>
+            `;
+            
+            let count = 0;
+            window.pressPound = function() {
+                count++;
+                AudioFX.chop();
+                
+                // Animation effect
+                const pestle = document.getElementById('pestle-stone');
+                if (pestle) {
+                    pestle.style.top = "10px";
+                    setTimeout(() => { pestle.style.top = "-20px"; }, 100);
+                }
+                
+                document.getElementById('mortar-count-label').innerText = `ตำไปแล้ว: ${count} / 10 ครั้ง`;
+                if (count >= 10) {
+                    spawnFloatingNotice("ละเอียดเรียบร้อย!", "ได้เครื่องตําแหลกเหนียวนุ่มสมบูรณ์!", "success");
+                    exitMinigame(true);
+                }
+            };
+        }
+
+        function startMinigame_PrepVeggies() {
+            enterMinigame("หั่นฟักทอง & ทุบตะไคร้", "กดปุ่มหั่นส่วนต่างๆ ของผักสมุนไพรลงถ้วยเตรียมนึ่งแกง", 100);
+            const vp = document.getElementById('minigame-viewport');
+            
+            vp.innerHTML = `
+                <div class="flex flex-col items-center w-64 gap-4">
+                    <div class="flex gap-4">
+                        <div class="p-3 bg-slate-800 rounded-xl text-center border border-slate-700">
+                            <span class="text-3xl">🎃</span>
+                            <div class="text-[10px] mt-1 text-slate-400">ฟักทองสับ</div>
+                            <button onclick="sliceVeg('pumpkin')" id="btn-slice-p" class="mt-2 px-3 py-1 bg-amber-500 text-slate-950 font-bold rounded text-xs active:scale-95 transition">หั่นมีด</button>
+                        </div>
+                        <div class="p-3 bg-slate-800 rounded-xl text-center border border-slate-700">
+                            <span class="text-3xl">🎋</span>
+                            <div class="text-[10px] mt-1 text-slate-400">ทุบตะไคร้</div>
+                            <button onclick="sliceVeg('lemongrass')" id="btn-slice-l" class="mt-2 px-3 py-1 bg-amber-500 text-slate-950 font-bold rounded text-xs active:scale-95 transition">หั่นมีด</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            let pCut = false;
+            let lCut = false;
+            window.sliceVeg = function(type) {
+                AudioFX.chop();
+                if (type === 'pumpkin') {
+                    pCut = true;
+                    document.getElementById('btn-slice-p').innerText = "✅ สำเร็จ";
+                    document.getElementById('btn-slice-p').disabled = true;
+                } else {
+                    lCut = true;
+                    document.getElementById('btn-slice-l').innerText = "✅ สำเร็จ";
+                    document.getElementById('btn-slice-l').disabled = true;
+                }
+                
+                if (pCut && lCut) {
+                    spawnFloatingNotice("ผักเรียบร้อย!", "จัดเตรียมลงจานจัดเตรียมพร้อมปรุงแกง!", "success");
+                    exitMinigame(true);
+                }
+            };
+        }
+
+        const COOK_STAGES_CONFIG = {
+            9: {
+                title: "แกงเดือดเวทีที่ 1: ต้มเนื้อสัตว์และเครื่องหอม",
+                desc: "ลากวัตถุดิบใส่ลงในหม้อแกงให้ถูกต้องตามลำดับ! (ลำดับ: ไก่ -> พริกตํา -> ตะไคร้ -> เกลือ -> ชูรส -> น้ำปลา)",
+                sequence: ['chicken', 'chili_fresh', 'lemongrass', 'salt', 'msg', 'fish_sauce']
+            },
+            10: {
+                title: "แกงเดือดเวทีที่ 2: ใส่ผักสุกยากและพระเอก",
+                desc: "ลากใส่หม้อตามลำดับ: เนื้อฟักทอง และหวายต้มสุก",
+                sequence: ['pumpkin', 'rattan_shoot']
+            },
+            11: {
+                title: "แกงเดือดเวทีที่ 3: เทน้ำย่านางเพิ่มความข้นคลั่ก",
+                desc: "ลากสิ่งนี้ลงหม้อ: น้ำคั้นใบย่านางเหนียวนัว",
+                sequence: ['yanang']
+            },
+            12: {
+                title: "แกงเดือดเวทีที่ 4: เติมความนัวขั้นขีดจำกัดด้วยปลาร้า",
+                desc: "ลากสิ่งเหล่านี้ใส่หม้อ: น้ำปลาร้าต้มสุก -> เห็ดภูพาน -> บวบหอมสับ -> ยอดฟักทองอ่อน",
+                sequence: ['plara_sauce', 'mushroom', 'luffa', 'shoots']
+            },
+            13: {
+                title: "แกงเดือดเวทีที่ 5: โรยผักสะแงะหอมปิดเกม",
+                desc: "ลากสิ่งที่หอมที่สุดใส่เป็นชิ้นสุดท้าย: ใบผักสะแงะสด",
+                sequence: ['sangae']
+            }
+        };
+
+        function startMinigame_CookingStages() {
+            const config = COOK_STAGES_CONFIG[Game.currentQuestIndex];
+            if (!config) return;
+            
+            enterMinigame(config.title, config.desc, config.sequence.length);
+            const vp = document.getElementById('minigame-viewport');
+            
+            // Build inventory chips lists that are active
+            let itemsHTML = '';
+            config.sequence.forEach(id => {
+                const itemMeta = getIngredientMeta(id);
+                itemsHTML += `
+                    <div id="drag-${id}" class="p-2.5 bg-slate-800 hover:bg-slate-700 border-2 border-slate-600 rounded-xl text-center cursor-pointer text-xs flex flex-col items-center gap-1 min-w-[70px]" onclick="addIngredientToPot('${id}')">
+                        <span class="text-2xl">${itemMeta.icon}</span>
+                        <span class="font-semibold text-slate-200">${itemMeta.name}</span>
+                    </div>
+                `;
+            });
+            
+            vp.innerHTML = `
+                <div class="flex flex-col items-center w-full px-4 gap-6">
+                    <!-- Boiling Pot -->
+                    <div class="relative w-36 h-32 bg-slate-700 border-b-8 border-slate-800 rounded-b-full flex flex-col items-center justify-center shadow-inner" id="cooking-pot-render">
+                        <div class="absolute top-[-5px] left-0 right-0 h-4 bg-slate-500 rounded-full border-t border-white/20"></div>
+                        <div id="pot-soup-liquid" class="w-28 h-6 bg-emerald-900/60 rounded-full absolute top-[5px] transition-all duration-500"></div>
+                        <div class="text-4xl z-10" id="pot-emoji-visual">🍲</div>
+                        <!-- Steam Animation visual -->
+                        <div class="absolute top-[-25px] flex gap-2 animate-pulse" id="steam-cloud-visual" style="display:none;">
+                            <span class="text-white/60 text-lg">♨️</span>
+                            <span class="text-white/60 text-lg">♨️</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Choices container -->
+                    <div class="flex flex-wrap gap-2 justify-center w-full max-w-md">
+                        ${itemsHTML}
+                    </div>
+                </div>
+            `;
+            
+            let progressIndex = 0;
+            window.addIngredientToPot = function(id) {
+                const targetId = config.sequence[progressIndex];
+                if (id === targetId) {
+                    AudioFX.chop();
+                    const el = document.getElementById(`drag-${id}`);
+                    if (el) el.style.opacity = '0.3';
+                    
+                    progressIndex++;
+                    spawnFloatingNotice("เข้าหม้อสำเร็จ!", `เทส่วนผสม ${getIngredientMeta(id).name} แล้ว!`, "success");
+                    
+                    // Specific stages fluid visuals
+                    if (Game.currentQuestIndex === 11) {
+                        document.getElementById('pot-soup-liquid').style.backgroundColor = '#065f46'; // green soup
+                    }
+                    if (Game.currentQuestIndex === 13) {
+                        document.getElementById('steam-cloud-visual').style.display = 'flex'; // fragrant smell
+                    }
+                    
+                    if (progressIndex >= config.sequence.length) {
+                        exitMinigame(true);
+                    }
+                } else {
+                    AudioFX.fail();
+                    addScore(-30);
+                    spawnFloatingNotice("ลำดับผิดพลาด!", "การปรุงตามลำดับทำให้รสชาติอร่อยกลมกล่อมที่สุดนะเหมียว!", "error");
+                }
+            };
+        }
+
+        function getIngredientMeta(id) {
+            const meta = {
+                chicken: { name: "เนื้อไก่", icon: "🍗" },
+                chili_fresh: { name: "พริกตำ", icon: "🌶️" },
+                lemongrass: { name: "ตะไคร้", icon: "🎋" },
+                salt: { name: "เกลือ", icon: "🧂" },
+                msg: { name: "ผงนัว", icon: "❄️" },
+                fish_sauce: { name: "น้ำปลา", icon: "🍼" },
+                pumpkin: { name: "ฟักทอง", icon: "🎃" },
+                rattan_shoot: { name: "หวายต้ม", icon: "🌾" },
+                yanang: { name: "น้ำย่านาง", icon: "🍃" },
+                plara_sauce: { name: "ปลาร้านัว", icon: "🏺" },
+                mushroom: { name: "เห็ดภูพาน", icon: "🍄" },
+                luffa: { name: "บวบหอม", icon: "🥒" },
+                shoots: { name: "ยอดฟักทอง", icon: "🌱" },
+                sangae: { name: "ผักสะแงะ", icon: "☘️" }
+            };
+            return meta[id] || { name: "วัตถุดิบ", icon: "📦" };
+        }
+
+        function serveBowlCompletion() {
+            AudioFX.success();
+            Game.inventory.push({ id: 'final_soup_bowl', name: "แกงหวายสกลนคร", icon: "🍲" });
+            spawnFloatingNotice("ทำแกงสำเร็จแล้ว!", "ได้รับ 'แกงหวายสกลนครร้อนๆ' ส่งกลิ่นหอมกรุ่นขึ้นจมูก!", "success");
+            nextQuest();
+        }
+
+        function triggerEducationalPopup(itemKey) {
+            const topic = KNOWLEDGE_ITEMS[itemKey];
+            if (!topic) return;
+            
+            document.getElementById('edu-title').innerText = topic.title;
+            document.getElementById('edu-content').innerText = topic.content;
+            
+            const pop = document.getElementById('educational-popup');
+            pop.style.transform = 'translateY(0)';
+            pop.style.opacity = '1';
+            
+            if (!topic.rewarded) {
+                topic.rewarded = true;
+                Game.knowledgeOpened++;
+                earnExp(50);
+                addScore(150);
+            }
+        }
+
+        function closeEduPopup() {
+            const pop = document.getElementById('educational-popup');
+            pop.style.transform = 'translateY(100%)';
+            pop.style.opacity = '0';
+        }
+
+        function spawnFloatingNotice(title, text, type = "info") {
+            const notice = document.createElement('div');
+            notice.className = `fixed bottom-24 left-4 right-4 md:left-auto md:w-80 bg-slate-900 border-l-4 text-white p-3 rounded-r-xl shadow-2xl z-50 transform translate-x-5 transition-all duration-300 flex flex-col gap-0.5 pointer-events-none`;
+            
+            if (type === 'success') notice.classList.add('border-green-500');
+            else if (type === 'error') notice.classList.add('border-red-500');
+            else notice.classList.add('border-amber-500');
+            
+            notice.innerHTML = `
+                <div class="text-xs font-bold text-amber-400">${title}</div>
+                <div class="text-[11px] text-slate-300 leading-tight">${text}</div>
+            `;
+            
+            document.body.appendChild(notice);
+            setTimeout(() => {
+                notice.style.transform = 'translateY(-10px)';
+                notice.style.opacity = '0';
+                setTimeout(() => notice.remove(), 400);
+            }, 3000);
+        }
+
+        function saveGameProgress() {
+            // Keep local state active, can expand to localstorage
+            try {
+                localStorage.setItem('sakon_cat_save', JSON.stringify({
+                    quest: Game.currentQuestIndex,
+                    score: Game.score,
+                    exp: Game.exp,
+                    level: Game.level,
+                    knowledge: Game.knowledgeOpened
+                }));
+            } catch (e) {}
+        }
+
+        function finishGame() {
+            // Calculate final percentage and stats
+            clearInterval(Game.timerInterval);
+            
+            document.getElementById('end-level').innerText = `Lv.${Game.level}`;
+            document.getElementById('end-score').innerText = Game.score;
+            
+            const minutes = Math.floor(Game.timeElapsed / 60);
+            const seconds = Game.timeElapsed % 60;
+            document.getElementById('end-time').innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} นาที`;
+            
+            document.getElementById('end-knowledge').innerText = `${Game.knowledgeOpened} / 5 เรื่อง`;
+            
+            const progress = Math.min(100, Math.floor((Game.currentQuestIndex / 16) * 100));
+            document.getElementById('end-progress-bar').style.width = `${progress}%`;
+            document.getElementById('end-progress-text').innerText = `${progress}%`;
+            
+            showScreen('screen-end');
+        }
+
+        function shareGame() {
+            const text = `ฉันพาเจ้าเหมียวส้มทำแกงหวายสกลนครสูตรตำนานระดับตำราได้สำเร็จแล้ว! ทำคะแนนไปถึง ${Game.score} คะแนน! ลองมาเรียนรู้ทักษะอาหารพื้นบ้านไปด้วยกันนะเหมียว!`;
+            const dummy = document.createElement('input');
+            document.body.appendChild(dummy);
+            dummy.value = text;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            spawnFloatingNotice("คัดลอกลิ้งค์แล้ว!", "นำข้อความที่คัดลอกแชร์บอกเพื่อนต่อได้เลย!", "success");
+        }
+    </script>
+</body>
+</html>
