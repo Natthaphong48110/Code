@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>เกม AR: ก้อยไข่มดแดงพิชิตเกรด</title>
     
     <!-- Tailwind CSS -->
@@ -15,63 +15,31 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #1a202c; font-family: 'Sarabun', sans-serif; }
-        
-        /* ป้องกันกล้องกลับด้าน (ทำเป็นกระจกเงาเพื่อให้ควบคุมง่าย) */
-        .mirror {
-            transform: scaleX(-1);
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            background-color: #1a202c; 
+            font-family: 'Sarabun', sans-serif;
+            touch-action: none;
         }
-
-        #videoElement {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover;
-            z-index: 1;
-            opacity: 0.8;
-        }
-
-        #gameCanvas {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10; /* Canvas ซ้อนทับวิดีโอ */
-        }
-
-        /* Glassmorphism UI */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-
-        #ui-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 20;
-            pointer-events: none; /* ให้คลิกทะลุไปที่ Canvas ได้ */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
+        .mirror { transform: scaleX(-1); }
+        #videoElement { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.8; }
+        #gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; touch-action: none; }
+        .glass-panel { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .pointer-events-auto { pointer-events: auto; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Video Background -->
     <video id="videoElement" class="mirror" autoplay playsinline></video>
-    
-    <!-- Game Canvas (เอาคลาส mirror ออก เพื่อให้ตัวอักษรไม่กลับด้าน) -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- HTML UI Layer -->
     <div id="ui-layer">
-        
-        <!-- Screen: Start -->
         <div id="screen-start" class="glass-panel p-8 rounded-3xl text-center pointer-events-auto transition-opacity duration-500">
             <h1 class="text-5xl font-extrabold text-white mb-4 drop-shadow-lg">🐜 ก้อยไข่มดแดง</h1>
             <h2 class="text-3xl font-bold text-yellow-300 mb-8 drop-shadow-md">พิชิตเกรด (AR Edition)</h2>
@@ -81,21 +49,24 @@
             </button>
         </div>
 
-        <!-- AI Loading Warning -->
-        <div id="ai-loading" class="hidden absolute top-5 left-1/2 transform -translate-x-1/2 glass-panel px-6 py-2 rounded-full text-yellow-300 font-bold text-lg animate-pulse">
+        <div id="instruction-text" class="hidden absolute top-4 left-1/2 transform -translate-x-1/2 glass-panel px-8 py-4 rounded-2xl text-white font-bold text-2xl text-center min-w-[300px]">
+            ภารกิจ
+        </div>
+
+        <div id="ai-loading" class="hidden absolute top-28 left-1/2 transform -translate-x-1/2 glass-panel px-6 py-2 rounded-full text-yellow-300 font-bold text-lg animate-pulse">
             กำลังหามือของคุณ... (หรือใช้เมาส์เล่นแทนได้)
         </div>
 
-        <!-- Instructions Overlay (Top) -->
-        <div id="instruction-text" class="hidden absolute top-5 left-1/2 transform -translate-x-1/2 glass-panel px-8 py-4 rounded-2xl text-white font-bold text-2xl text-center min-w-[300px]">
-            ภารกิจ
+        <div id="edu-panel" class="hidden absolute bottom-5 right-5 max-w-md glass-panel p-5 rounded-2xl text-white pointer-events-auto transition-all duration-300 shadow-2xl border border-white/20 z-30">
+            <button id="edu-close-btn" class="absolute top-3 right-3 text-white/75 hover:text-white bg-white/10 hover:bg-white/25 w-8 h-8 rounded-full flex items-center justify-center transition-all text-sm font-bold shadow-sm">✕</button>
+            <h3 class="font-bold text-yellow-300 text-lg mb-2 flex items-center gap-2 pr-8"><span>💡</span> เกร็ดความรู้คู่ครัว</h3>
+            <p id="edu-text" class="text-sm leading-relaxed text-gray-100"></p>
         </div>
+
+        <button id="edu-open-btn" class="hidden absolute bottom-5 right-5 glass-panel p-4 rounded-full text-white pointer-events-auto hover:scale-110 active:scale-95 transition-all shadow-2xl border border-white/20 z-30 flex items-center justify-center w-14 h-14 text-2xl">💡</button>
     </div>
 
 <script>
-/**
- * Core Setup & Variables
- */
 const videoElement = document.getElementById('videoElement');
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -104,33 +75,42 @@ const screenStart = document.getElementById('screen-start');
 const btnInit = document.getElementById('btn-init');
 const aiLoading = document.getElementById('ai-loading');
 const instructionText = document.getElementById('instruction-text');
+const eduPanel = document.getElementById('edu-panel');
+const eduText = document.getElementById('edu-text');
+const eduCloseBtn = document.getElementById('edu-close-btn');
+const eduOpenBtn = document.getElementById('edu-open-btn');
 
-let cw, ch;
+const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) || isIOSDevice;
+const isAndroid = /Android/i.test(navigator.userAgent);
+const isMobileDevice = isIOSDevice || isAndroid || (window.innerWidth < 1024);
+
+let cw = window.innerWidth;
+let ch = window.innerHeight;
+
 function resize() {
+    const dpr = window.devicePixelRatio || 1;
     cw = window.innerWidth;
     ch = window.innerHeight;
-    canvas.width = cw;
-    canvas.height = ch;
+    canvas.width = cw * dpr;
+    canvas.height = ch * dpr;
+    canvas.style.width = cw + 'px';
+    canvas.style.height = ch + 'px';
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    updateAllObjectsScale();
 }
 window.addEventListener('resize', resize);
-resize();
 
-/**
- * Game State & Input System
- */
 const GAME_STATES = { INIT: 0, INSTRUCT: 1, M1: 2, M2: 3, M3: 4, M4: 5, M5: 6, M6: 7, M7: 8, END: 9, FAIL: 10 };
 let currentState = GAME_STATES.INIT;
-
-// Cursor State
-let cursor = { x: cw/2, y: ch/2, isPinching: false, state: 'normal' }; // normal, hover, grabbed, missed
-let rawCursor = { x: cw/2, y: ch/2 }; // For smoothing
+let score = 0;
+let scorePops = [];
+let cursor = { x: cw/2, y: ch/2, isPinching: false, state: 'normal' };
+let rawCursor = { x: cw/2, y: ch/2 };
 let handDetected = false;
 let landmarks = null;
-
-// Fallback System
 let usingMouse = false;
-
-// Game Objects
 let items = [];
 let zones = [];
 let grabbedItem = null;
@@ -139,18 +119,42 @@ let actionTarget = null;
 let stirProgress = 0;
 let lastStirPos = {x: 0, y: 0};
 
-/**
- * Input Handling (Mouse / Touch Fallback)
- */
+let missionData = {
+    startTime: 0,
+    antNeeds: { water: 100, meat: 100, nectar: 100 },
+    antReadiness: 0,
+    bowlContents: [], 
+    poundCount: 0,
+    lastPestleY: 0,
+    poundDirection: 0 
+};
+
+const eduTexts = {
+    [GAME_STATES.INSTRUCT]: "จีบนิ้ว (นิ้วโป้งแตะปลายนิ้วชี้) บนปุ่มเพื่อเริ่มเกมได้เลย! หรือใช้เมาส์คลิกลาก",
+    [GAME_STATES.M1]: "🌳 การเลี้ยงมดแดงใช้เวลาประมาณ 1-2 เดือนในการรอให้มดสร้างรังและวางไข่ สิ่งสำคัญคือต้องให้น้ำสะอาดตลอดเวลา (ใช้ขวดเจาะรูแขวนไว้) และให้อาหารโปรตีน เช่น เศษปลา สลับกับน้ำหวานเพื่อเป็นพลังงานให้มดงาน!",
+    [GAME_STATES.M2]: "🧅 หอมแดงและต้นหอมผักชีฝรั่งช่วยขับลม แก้หวัด คัดจมูก ส่วนมะนาวให้วิตามินซีสดดับกลิ่นคาว",
+    [GAME_STATES.M3]: "🌶️ การตำพริกแห้งในครกหิน เซลล์ของพริกจะคายน้ำมันหอมระเหยออกมามากกว่าการปั่นด้วยเครื่อง",
+    [GAME_STATES.M4]: "🥚 ไข่มดแดงจัดเป็นโปรตีนชั้นสูง การผสมน้ำปลาร้าและข้าวคั่วจะช่วยชูรสนัวและซับน้ำก้อยให้ข้นขึ้น",
+    [GAME_STATES.M5]: "🥄 การคนก้อยต้องใช้ความเบามือ ทะนุถนอมไม่ให้ไข่มดแดงแตก เพื่อคงเนื้อสัมผัสเต่งตึงเวลาเคี้ยว",
+    [GAME_STATES.M6]: "🍃 โรยผักชี ต้นหอม หอมซอย และสะระแหน่ในขั้นตอนสุดท้าย ป้องกันไม่ให้ผักเฉาจากกรดมะนาว",
+    [GAME_STATES.M7]: "🥗 คลุกเคล้าครั้งสุดท้ายให้เข้ากัน พร้อมเสิร์ฟทันทีเพื่อให้ผักและไข่ยังมีสีสันสดใส",
+    [GAME_STATES.END]: "🎉 สุดยอด! ก้อยไข่มดแดงจานนี้เต็มเปี่ยมด้วยโปรตีนจากธรรมชาติและสรรพคุณสมุนไพร",
+    [GAME_STATES.FAIL]: "❌ รังมดเสี่ยงขาดสารอาหารจนหนีไปหมด! การเลี้ยงต้องหมั่นเติมน้ำและอาหารสม่ำเสมอ"
+};
+
+eduCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); eduPanel.classList.add('hidden'); eduOpenBtn.classList.remove('hidden'); });
+eduOpenBtn.addEventListener('click', (e) => { e.stopPropagation(); eduPanel.classList.remove('hidden'); eduOpenBtn.classList.add('hidden'); });
+
+function addScore(amount, x, y) {
+    score += amount;
+    scorePops.push({ text: `+${amount}`, x: x || cw / 2, y: y || ch / 2, alpha: 1, life: 60 });
+}
+
 function getMousePos(evt) {
     const rect = canvas.getBoundingClientRect();
     let clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
     let clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
-    
-    return {
-        x: clientX - rect.left, // Canvas กลับมาเป็นปกติแล้ว ไม่ต้องกลับค่า X
-        y: clientY - rect.top
-    };
+    return { x: clientX - rect.left, y: clientY - rect.top };
 }
 
 canvas.addEventListener('mousedown', (e) => { usingMouse = true; let pos = getMousePos(e); rawCursor.x = pos.x; rawCursor.y = pos.y; cursor.isPinching = true; handlePinchStart(); });
@@ -160,312 +164,535 @@ canvas.addEventListener('touchstart', (e) => { e.preventDefault(); usingMouse = 
 canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if(usingMouse) { let pos = getMousePos(e); rawCursor.x = pos.x; rawCursor.y = pos.y; } }, {passive: false});
 canvas.addEventListener('touchend', () => { cursor.isPinching = false; handlePinchEnd(); });
 
-/**
- * MediaPipe Hands Setup
- */
 let hands;
 let camera;
 
 async function initMediaPipe() {
     aiLoading.classList.remove('hidden');
     hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-    hands.setOptions({
-        maxNumHands: 1,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.7,
-        minTrackingConfidence: 0.7
-    });
+    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
     hands.onResults(onResults);
-
-    camera = new Camera(videoElement, {
-        onFrame: async () => { await hands.send({image: videoElement}); },
-        width: 1280, height: 720
-    });
+    camera = new Camera(videoElement, { onFrame: async () => { await hands.send({image: videoElement}); }, width: 1280, height: 720 });
     camera.start();
 }
 
-// MediaPipe Callback (แยกอิสระจากการวาด)
 function onResults(results) {
     handDetected = results.multiHandLandmarks && results.multiHandLandmarks.length > 0;
-    
     if (handDetected) {
         aiLoading.classList.add('hidden');
-        usingMouse = false; // Override mouse if hand is found
+        usingMouse = false;
         landmarks = results.multiHandLandmarks[0];
-        
-        // 1. เคอร์เซอร์ติดตามปลายนิ้วชี้ (Index Finger Tip - Landmark 8)
-        const indexTip = landmarks[8];
-        const thumbTip = landmarks[4];
-        
-        // แปลงพิกัด (สลับแกน X ด้วย 1-x เพราะวิดีโอถูก Mirror แต่ Canvas เป็นปกติ)
-        let indexX = (1 - indexTip.x) * cw;
-        let indexY = indexTip.y * ch;
-        rawCursor.x = indexX; 
-        rawCursor.y = indexY;
-
-        // 2. คำนวณระยะห่างด้วยพีทาโกรัส
-        let thumbX = (1 - thumbTip.x) * cw;
-        let thumbY = thumbTip.y * ch;
-        let dx = thumbX - indexX;
-        let dy = thumbY - indexY;
-        let dist = Math.sqrt(dx * dx + dy * dy);
-
-        // 3. ตรวจจับการจีบ
-        const pinchThreshold = cw * 0.05; // 5% ของหน้าจอ
-        let newPinchState = dist < pinchThreshold;
-
-        if (newPinchState && !cursor.isPinching) {
-            cursor.isPinching = true;
-            handlePinchStart();
-        } else if (!newPinchState && cursor.isPinching) {
-            cursor.isPinching = false;
-            handlePinchEnd();
-        }
+        let indexX = (1 - landmarks[8].x) * cw; let indexY = landmarks[8].y * ch;
+        let thumbX = (1 - landmarks[4].x) * cw; let thumbY = landmarks[4].y * ch;
+        rawCursor.x = indexX; rawCursor.y = indexY;
+        let dist = Math.sqrt((thumbX-indexX)**2 + (thumbY-indexY)**2);
+        let newPinchState = dist < Math.min(cw, ch) * 0.08;
+        if (newPinchState && !cursor.isPinching) { cursor.isPinching = true; handlePinchStart(); } 
+        else if (!newPinchState && cursor.isPinching) { cursor.isPinching = false; handlePinchEnd(); }
     } else {
         if(currentState > GAME_STATES.INIT) aiLoading.classList.remove('hidden');
         landmarks = null;
     }
 }
 
-/**
- * Game Engine: Object Classes
- */
+function resetIngredientPos(item) {
+    let xOffset = cw * 0.15;
+    let list = [];
+    if(currentState === GAME_STATES.M2) list = ['shallot', 'chiliR', 'culantro', 'spring', 'coriander', 'lime'];
+    if(currentState === GAME_STATES.M3) list = ['chiliD'];
+    if(currentState === GAME_STATES.M4) list = ['antEgg', 'chiliP', 'rice', 'fishS', 'plara', 'limeC'];
+    if(currentState === GAME_STATES.M6) list = ['chiliRC', 'shallotC', 'culantroC', 'springC', 'corianderC', 'mint'];
+    
+    let idx = list.indexOf(item.id);
+    if(idx !== -1) {
+        item.x = xOffset; item.y = ch * 0.2 + (idx * 90);
+        item.relX = item.x/cw; item.relY = item.y/ch;
+        item.targetZone = null;
+    } else if(item.type === 'tool') {
+        item.x = cw * 0.85; item.y = ch / 2;
+        item.relX = item.x/cw; item.relY = item.y/ch;
+    }
+}
+
 class GameObject {
     constructor(id, type, emoji, name, x, y, w, h, isDraggable = true) {
-        this.id = id;
-        this.type = type; // 'ingredient', 'tool', 'zone', 'button'
-        this.emoji = emoji;
-        this.name = name;
-        this.x = x; this.y = y;
-        this.w = w; this.h = h;
-        this.isDraggable = isDraggable;
-        this.isChopped = false;
-        this.isPounded = false;
-        this.targetZone = null;
+        this.id = id; this.type = type; this.emoji = emoji; this.name = name;
+        this.x = x; this.y = y; this.w = w; this.h = h;
+        this.isDraggable = isDraggable; this.isChopped = false; this.targetZone = null;
+        this.relX = x / cw; this.relY = y / ch;
+    }
+    updateScale() { if (grabbedItem !== this) { this.x = this.relX * cw; this.y = this.relY * ch; } }
+    contains(px, py) {
+        const p = isMobileDevice ? 30 : 10;
+        return px >= this.x - this.w/2 - p && px <= this.x + this.w/2 + p && py >= this.y - this.h/2 - p && py <= this.y + this.h/2 + p;
     }
 
-    contains(px, py) {
-        return px >= this.x - this.w/2 && px <= this.x + this.w/2 &&
-               py >= this.y - this.h/2 && py <= this.y + this.h/2;
+    drawRealisticGraphics(ctx, type) {
+        let sc = Math.min(this.w, this.h) / 100;
+        ctx.scale(sc, sc);
+        
+        switch(type) {
+            case 'knife':
+                ctx.fillStyle = '#27272a'; ctx.beginPath(); ctx.roundRect(-45, -8, 40, 16, 4); ctx.fill();
+                ctx.fillStyle = '#e2e8f0'; ctx.beginPath(); ctx.arc(-35, 0, 3, 0, Math.PI*2); ctx.arc(-15, 0, 3, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#94a3b8'; ctx.beginPath(); ctx.moveTo(-5, -12); ctx.lineTo(50, -8); ctx.quadraticCurveTo(60, 20, 40, 20); ctx.lineTo(-5, 20); ctx.fill();
+                ctx.fillStyle = '#f8fafc'; ctx.beginPath(); ctx.moveTo(-5, 16); ctx.lineTo(38, 16); ctx.lineTo(40, 20); ctx.lineTo(-5, 20); ctx.fill(); 
+                break;
+            case 'culantro': 
+                ctx.fillStyle = '#15803d'; ctx.strokeStyle = '#14532d'; ctx.lineWidth = 1;
+                for(let i=0; i<3; i++) {
+                    ctx.save(); ctx.rotate(i*0.3 - 0.3);
+                    ctx.beginPath(); ctx.moveTo(0, 20); ctx.lineTo(-10, 0); ctx.lineTo(-5, -20); ctx.lineTo(0, -40); ctx.lineTo(5, -20); ctx.lineTo(10, 0); ctx.fill(); ctx.stroke();
+                    ctx.restore();
+                }
+                break;
+            case 'spring': 
+                ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.roundRect(-5, 10, 10, 15, 2); ctx.fill(); 
+                ctx.fillStyle = '#4ade80'; ctx.beginPath(); ctx.roundRect(-4, -30, 8, 40, 2); ctx.fill(); 
+                ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.roundRect(-8, -25, 4, 35, 2); ctx.roundRect(4, -35, 4, 45, 2); ctx.fill();
+                break;
+            case 'lime': 
+                let lGrad = ctx.createRadialGradient(-10, -10, 5, 0, 0, 25);
+                lGrad.addColorStop(0, '#84cc16'); lGrad.addColorStop(1, '#4d7c0f');
+                ctx.fillStyle = lGrad; ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#3f6212'; ctx.beginPath(); ctx.arc(20, 0, 3, 0, Math.PI*2); ctx.fill(); 
+                break;
+            case 'shallot':
+                ctx.fillStyle = '#c026d3'; ctx.beginPath(); ctx.arc(0, 5, 18, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#e9d5ff'; ctx.beginPath(); ctx.moveTo(-6, -8); ctx.lineTo(0, -25); ctx.lineTo(6, -8); ctx.fill();
+                break;
+            case 'chiliR': // พริกแดงสมจริง
+                ctx.fillStyle = '#16a34a'; ctx.beginPath(); ctx.moveTo(-3, -35); ctx.lineTo(3, -35); ctx.lineTo(2, -25); ctx.lineTo(-2, -25); ctx.fill(); ctx.beginPath(); ctx.arc(0, -25, 4, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#dc2626'; ctx.beginPath(); ctx.moveTo(-6, -24); ctx.bezierCurveTo(-15, 0, -25, 20, -5, 35); ctx.bezierCurveTo(5, 20, 5, 0, 6, -24); ctx.fill();
+                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-2, -20); ctx.bezierCurveTo(-8, 0, -15, 15, -3, 30); ctx.stroke();
+                break;
+            case 'coriander': // ผักชีสมจริง
+                ctx.strokeStyle = '#15803d'; ctx.lineWidth = 1.5; ctx.fillStyle = '#22c55e';
+                for(let i=0; i<3; i++) {
+                    ctx.save(); ctx.rotate((i-1)*0.5);
+                    ctx.beginPath(); ctx.moveTo(0, 20); ctx.quadraticCurveTo(5, 0, 0, -20); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(0, -22, 5, 0, Math.PI*2); ctx.arc(-5, -18, 4, 0, Math.PI*2); ctx.arc(5, -18, 4, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(-7, -8, 4, 0, Math.PI*2); ctx.arc(-11, -5, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(7, -8, 4, 0, Math.PI*2); ctx.arc(11, -5, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.restore();
+                }
+                break;
+            case 'chiliD': 
+                ctx.fillStyle = '#7f1d1d'; ctx.strokeStyle = '#450a0a'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(-20, 10); ctx.quadraticCurveTo(0, -10, 25, 0); ctx.quadraticCurveTo(5, 10, -20, 10); ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(-20, 10); ctx.quadraticCurveTo(-15, 5, -5, -5); ctx.stroke(); 
+                ctx.fillStyle = '#d97706'; ctx.beginPath(); ctx.roundRect(-28, 8, 10, 4, 2); ctx.fill(); 
+                break;
+            case 'spoon': 
+                ctx.fillStyle = '#1f2937'; ctx.beginPath(); ctx.roundRect(-40, -5, 40, 10, 5); ctx.fill(); 
+                let sGrad = ctx.createLinearGradient(0, -15, 0, 15); sGrad.addColorStop(0, '#e2e8f0'); sGrad.addColorStop(1, '#94a3b8');
+                ctx.fillStyle = sGrad; ctx.beginPath(); ctx.ellipse(25, 0, 25, 18, 0, 0, Math.PI*2); ctx.fill(); 
+                ctx.fillStyle = '#64748b'; ctx.beginPath(); ctx.ellipse(25, 0, 20, 13, 0, 0, Math.PI*2); ctx.fill(); 
+                break;
+            case 'pestle':
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
+                let pestleGrad = ctx.createLinearGradient(-40, 0, 40, 0);
+                pestleGrad.addColorStop(0, '#78350f'); pestleGrad.addColorStop(0.35, '#b45309'); pestleGrad.addColorStop(0.75, '#d97706'); pestleGrad.addColorStop(1, '#78350f');
+                ctx.fillStyle = pestleGrad; ctx.beginPath();
+                ctx.moveTo(-15, -60); ctx.quadraticCurveTo(0, -75, 15, -60); ctx.lineTo(25, 60); ctx.quadraticCurveTo(0, 80, -25, 60); ctx.closePath(); ctx.fill();
+                ctx.shadowColor = 'transparent';
+                ctx.strokeStyle = 'rgba(69, 26, 3, 0.35)'; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.moveTo(-15, -55); ctx.quadraticCurveTo(-6, 0, -18, 55); ctx.moveTo(10, -50); ctx.quadraticCurveTo(10, 0, 22, 55); ctx.stroke();
+                ctx.fillStyle = '#451a03'; ctx.fillRect(-17, -15, 34, 8);
+                ctx.restore();
+                break;
+            case 'mint': 
+                ctx.fillStyle = '#16a34a'; ctx.strokeStyle = '#14532d'; ctx.lineWidth = 1;
+                for(let i=0; i<4; i++) {
+                    ctx.save(); ctx.rotate(i*Math.PI/2 + 0.5);
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(15, -15, 0, -30); ctx.quadraticCurveTo(-15, -15, 0, 0); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-28); ctx.stroke();
+                    ctx.restore();
+                }
+                break;
+            case 'bowl': // ชามผสมและของที่อยู่ในชาม
+                let bGrad = ctx.createLinearGradient(0, -40, 0, 40); bGrad.addColorStop(0, '#e2e8f0'); bGrad.addColorStop(1, '#64748b');
+                ctx.fillStyle = bGrad; ctx.beginPath(); ctx.ellipse(0, 0, 140, 90, 0, 0, Math.PI*2); ctx.fill(); 
+                let bInGrad = ctx.createRadialGradient(0, 10, 10, 0, 0, 130); bInGrad.addColorStop(0, '#94a3b8'); bInGrad.addColorStop(1, '#334155');
+                ctx.fillStyle = bInGrad; ctx.beginPath(); ctx.ellipse(0, 0, 130, 80, 0, 0, Math.PI*2); ctx.fill(); 
+                ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 0, 130, 80, 0, 0, Math.PI*2); ctx.stroke(); 
+
+                ctx.scale(0.8, 0.8); 
+                
+                // 1. วาดไข่มดแดงเป็นเบสชั้นล่างสุด (ถ้ามี)
+                if (missionData.bowlContents.includes('antEgg')) {
+                    ctx.fillStyle = '#b45309'; // สีน้ำก้อยรองพื้นนิดๆ
+                    ctx.beginPath(); ctx.ellipse(0, 10, 110, 60, 0, 0, Math.PI*2); ctx.fill();
+                    for(let i=0; i<100; i++) {
+                        let ex = Math.sin(i * 13.5) * 95; let ey = Math.cos(i * 17.5) * 45 + 10;
+                        let eg = ctx.createLinearGradient(ex-2, ey-2, ex+2, ey+2);
+                        eg.addColorStop(0, '#ffffff'); eg.addColorStop(1, '#fef3c7');
+                        ctx.fillStyle = eg; ctx.beginPath(); ctx.ellipse(ex, ey, 4.5, 3, Math.sin(i), 0, Math.PI*2); ctx.fill();
+                    }
+                }
+
+                // 2. วาดของเหลว (น้ำปลา ปลาร้า)
+                if (missionData.bowlContents.includes('fishS') || missionData.bowlContents.includes('plara')) {
+                    ctx.fillStyle = missionData.bowlContents.includes('plara') ? 'rgba(69, 26, 3, 0.5)' : 'rgba(180, 83, 9, 0.4)';
+                    ctx.beginPath(); ctx.ellipse(0, 15, 110, 60, 0, 0, Math.PI*2); ctx.fill();
+                }
+
+                // 3. วาดเครื่องปรุงและผักโรยทับด้านบน (กระจายตัวแบบนิ่ง)
+                missionData.bowlContents.forEach((cId) => {
+                    if (cId === 'chiliP') {
+                        ctx.fillStyle = '#dc2626';
+                        for(let i=0; i<80; i++) { let px = Math.sin(i*23.1)*80; let py = Math.cos(i*29.3)*40+10; ctx.fillRect(px, py, 2.5, 2.5); }
+                    } else if (cId === 'rice') {
+                        ctx.fillStyle = '#d97706';
+                        for(let i=0; i<80; i++) { let px = Math.sin(i*31.7)*80; let py = Math.cos(i*37.9)*40+10; ctx.fillRect(px, py, 3, 3); }
+                    } else if (cId === 'chiliRC' || cId === 'chiliRChopped') {
+                        ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 3.5;
+                        for(let i=0; i<20; i++) { let px = Math.sin(i*41.3)*75; let py = Math.cos(i*43.1)*35+10; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px+8, py+(Math.sin(i)*5)); ctx.stroke(); }
+                    } else if (cId === 'shallotC' || cId === 'shallotChopped') {
+                        ctx.strokeStyle = '#9333ea'; ctx.lineWidth = 2.5;
+                        for(let i=0; i<15; i++) { let px = Math.sin(i*47.5)*75; let py = Math.cos(i*53.7)*35+10; ctx.beginPath(); ctx.arc(px, py, 5, Math.sin(i), Math.sin(i)+Math.PI); ctx.stroke(); }
+                    } else if (cId === 'culantroC' || cId === 'springC' || cId === 'corianderC') {
+                        ctx.fillStyle = '#22c55e';
+                        for(let i=0; i<30; i++) { let px = Math.sin(i*59.1)*75; let py = Math.cos(i*61.3)*35+10; ctx.fillRect(px, py, 5, 4); }
+                    } else if (cId === 'limeC') {
+                        ctx.save(); ctx.translate(35, -15); ctx.scale(0.5, 0.5); this.drawRealisticGraphics(ctx, 'limeC'); ctx.restore();
+                    } else if (cId === 'mint') {
+                        ctx.save(); ctx.translate(-25, 5); ctx.scale(0.5, 0.5); this.drawRealisticGraphics(ctx, 'mint'); ctx.restore();
+                    }
+                });
+                break;
+            case 'antEgg': // ไอคอนไข่มดแดงหน้าอก
+                ctx.fillStyle = '#15803d'; ctx.beginPath(); ctx.ellipse(0, 8, 28, 12, 0, 0, Math.PI*2); ctx.fill();
+                for(let i=0; i<15; i++) {
+                    let ex = Math.sin(i*11)*15; let ey = Math.cos(i*13)*7;
+                    let grad = ctx.createLinearGradient(ex-3, ey-3, ex+3, ey+3);
+                    grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#fef3c7');
+                    ctx.fillStyle = grad; ctx.beginPath(); ctx.ellipse(ex, ey, 6, 4, Math.sin(i), 0, Math.PI*2); ctx.fill();
+                }
+                break;
+            case 'chiliP': // ถ้วยพริกป่น
+                ctx.fillStyle = '#d1d5db'; ctx.beginPath(); ctx.ellipse(0, 10, 20, 10, 0, 0, Math.PI*2); ctx.fill(); 
+                ctx.fillStyle = '#991b1b'; ctx.beginPath(); ctx.ellipse(0, 5, 18, 8, 0, 0, Math.PI*2); ctx.fill(); 
+                ctx.fillStyle = '#f87171'; for(let i=0; i<25; i++) { ctx.fillRect(Math.sin(i*11)*12, Math.cos(i*13)*4 + 5, 1.5, 1.5); } 
+                break;
+            case 'rice': // ถ้วยข้าวคั่ว
+                ctx.fillStyle = '#78350f'; ctx.beginPath(); ctx.ellipse(0, 10, 20, 10, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#b45309'; ctx.beginPath(); ctx.ellipse(0, 5, 18, 8, 0, 0, Math.PI*2); ctx.fill(); 
+                ctx.fillStyle = '#fef3c7'; for(let i=0; i<25; i++) { ctx.fillRect(Math.sin(i*7)*12, Math.cos(i*19)*4 + 5, 2, 2); } 
+                break;
+            case 'fishS': 
+                ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.roundRect(-10, -25, 20, 45, 3); ctx.fill();
+                ctx.fillStyle = '#b45309'; ctx.beginPath(); ctx.roundRect(-9, -5, 18, 24, 2); ctx.fill();
+                ctx.fillStyle = '#fde047'; ctx.fillRect(-11, -2, 22, 12); ctx.fillStyle = '#dc2626'; ctx.fillRect(-6, 0, 12, 8);
+                ctx.fillStyle = '#dc2626'; ctx.fillRect(-6, -30, 12, 6);
+                break;
+            case 'plara': 
+                let pGrad = ctx.createRadialGradient(-5, -5, 2, 0, 5, 25); pGrad.addColorStop(0, '#9a3412'); pGrad.addColorStop(1, '#451a03');
+                ctx.fillStyle = pGrad; ctx.beginPath(); ctx.ellipse(0, 8, 22, 18, 0, 0, Math.PI*2); ctx.fill(); ctx.fillRect(-12, -10, 24, 12);
+                ctx.fillStyle = '#fef3c7'; ctx.beginPath(); ctx.ellipse(0, -12, 18, 6, 0, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#dc2626'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-15, -8); ctx.lineTo(15, -8); ctx.stroke();
+                break;
+            case 'limeC': 
+                ctx.rotate(-Math.PI/6); ctx.translate(0, 5);
+                ctx.fillStyle = '#16a34a'; ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI); ctx.fill();
+                ctx.fillStyle = '#ecfccb'; ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI); ctx.fill();
+                ctx.fillStyle = '#bef264'; ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI); ctx.fill();
+                ctx.strokeStyle = '#ecfccb'; ctx.lineWidth = 1.5;
+                for(let a=Math.PI/6; a<Math.PI-0.1; a+=Math.PI/4) { ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*18, Math.sin(a)*18); ctx.stroke(); }
+                break;
+            case 'choppedMisc': 
+            case 'culantroC':
+            case 'springC':
+            case 'corianderC': // ผักชีซอยในถ้วย
+                ctx.fillStyle = '#e2e8f0'; ctx.beginPath(); ctx.ellipse(0, 10, 18, 8, 0, 0, Math.PI*2); ctx.fill(); 
+                ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.ellipse(0, 5, 16, 6, 0, 0, Math.PI*2); ctx.fill(); 
+                ctx.fillStyle = '#ffffff'; for(let i=0; i<8; i++) ctx.fillRect(Math.sin(i*13)*10, Math.cos(i*17)*4, 2, 2); 
+                break;
+            case 'chiliRChopped': 
+            case 'chiliRC': // พริกซอยในถ้วย
+                ctx.fillStyle = '#e2e8f0'; ctx.beginPath(); ctx.ellipse(0, 10, 18, 8, 0, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 3; 
+                for(let i=0; i<10; i++) { ctx.beginPath(); ctx.moveTo(Math.sin(i*11)*10, Math.cos(i*13)*4+2); ctx.lineTo(Math.sin(i*11)*10+4, Math.cos(i*13)*4+2 + Math.sin(i)*2); ctx.stroke(); }
+                break;
+            case 'shallotChopped': 
+            case 'shallotC': // หอมซอยในถ้วย
+                ctx.fillStyle = '#e2e8f0'; ctx.beginPath(); ctx.ellipse(0, 10, 18, 8, 0, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#9333ea'; ctx.lineWidth = 2; 
+                for(let i=0; i<8; i++) { ctx.beginPath(); ctx.arc(Math.sin(i*7)*8, Math.cos(i*19)*4+2, 4, Math.sin(i), Math.sin(i)+Math.PI); ctx.stroke(); }
+                break;
+            case 'finalDish': 
+                ctx.fillStyle = '#f8fafc'; ctx.beginPath(); ctx.ellipse(0, 0, 160, 90, 0, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(0, 0, 150, 80, 0, 0, Math.PI*2); ctx.stroke(); 
+                ctx.fillStyle = '#b45309'; ctx.beginPath(); ctx.ellipse(0, -10, 110, 60, 0, 0, Math.PI*2); ctx.fill(); 
+                // ไข่มดแดง
+                for(let i=0; i<60; i++) {
+                    let ex = Math.sin(i*13) * 90; let ey = Math.cos(i*17) * 45 - 10;
+                    let grad = ctx.createLinearGradient(ex-3, ey-3, ex+3, ey+3);
+                    grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#fcd34d');
+                    ctx.fillStyle = grad; ctx.beginPath(); ctx.ellipse(ex, ey, 7, 5, Math.sin(i), 0, Math.PI*2); ctx.fill();
+                }
+                // พริกกับผักโรย
+                ctx.fillStyle = '#dc2626'; for(let i=0; i<20; i++) { ctx.fillRect(Math.sin(i*23)*80, Math.cos(i*29)*40 - 10, 4, 2); }
+                ctx.fillStyle = '#22c55e'; for(let i=0; i<30; i++) { ctx.fillRect(Math.sin(i*31)*80, Math.cos(i*37)*40 - 10, 5, 3); }
+                // สะระแหน่และพริกแห้งแต่งจาน (ปรับขนาดให้เล็กลง)
+                ctx.save(); ctx.translate(0, -20); ctx.scale(0.6, 0.6); this.drawRealisticGraphics(ctx, 'mint'); ctx.restore();
+                ctx.save(); ctx.translate(40, -10); ctx.scale(0.5, 0.5); this.drawRealisticGraphics(ctx, 'chiliD'); ctx.restore();
+                break;
+        }
     }
 
     draw(ctx) {
-        // Draw 2.5D Glassmorphism Box
         ctx.save();
         ctx.translate(this.x, this.y);
-        
-        // Box
+        let nameText = this.name ? this.name.trim() : "";
+
+        if (this.id === 'nest') {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)'; ctx.strokeStyle = this.id === actionTarget?.id ? '#fef08a' : 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 3; ctx.beginPath(); ctx.setLineDash([8, 8]); ctx.roundRect(-this.w/2, -this.h/2, this.w, this.h, 25); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillStyle = '#7a3e1d'; ctx.beginPath(); ctx.moveTo(-25, 150); ctx.lineTo(-15, -40); ctx.lineTo(15, -40); ctx.lineTo(25, 150); ctx.fill();
+            ctx.lineWidth = 14; ctx.strokeStyle = '#7a3e1d'; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(0, -15); ctx.quadraticCurveTo(-50, -35, -85, -20); ctx.moveTo(0, 10); ctx.quadraticCurveTo(45, -35, 90, -15); ctx.stroke();
+            ctx.fillStyle = '#15803d'; ctx.beginPath(); ctx.arc(-65, -70, 65, 0, Math.PI * 2); ctx.arc(65, -75, 70, 0, Math.PI * 2); ctx.arc(0, -110, 85, 0, Math.PI * 2); ctx.arc(-95, -25, 55, 0, Math.PI * 2); ctx.arc(95, -20, 55, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(-55, -85, 50, 0, Math.PI * 2); ctx.arc(55, -90, 55, 0, Math.PI * 2); ctx.arc(0, -125, 65, 0, Math.PI * 2); ctx.fill();
+            
+            let nestX = -65; let nestY = 15;
+            ctx.fillStyle = '#2f5228'; ctx.strokeStyle = '#1a3315';
+            ctx.lineWidth = 3.5; ctx.beginPath(); ctx.ellipse(nestX, nestY, 45, 55, Math.PI / 15, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.strokeStyle = '#1d3b19'; ctx.lineWidth = 2.5;
+            for (let j = -35; j <= 35; j += 18) { ctx.beginPath(); ctx.arc(nestX, nestY + j, 28, Math.PI * 0.15, Math.PI * 0.85, false); ctx.stroke(); }
+            ctx.fillStyle = '#0a1407'; ctx.beginPath(); ctx.arc(nestX + 12, nestY + 15, 9, 0, Math.PI * 2); ctx.fill(); 
+
+            let time = Date.now() * 0.0025; ctx.fillStyle = '#ca3a1b';
+            let antPaths = [{ id: 1, cx: 0, cy: 60, rx: 0, ry: 75, angle: -Math.PI/2, phase: 0 }, { id: 2, cx: 0, cy: 75, rx: 0, ry: 60, angle: Math.PI/2, phase: Math.PI }, { id: 3, cx: -60, cy: 10, rx: 30, ry: 35, phase: 1 }, { id: 4, cx: -55, cy: 15, rx: 35, ry: 40, phase: 2.5 }, { id: 5, cx: 45, cy: -20, rx: 35, ry: 10, phase: 3.2 }, { id: 6, cx: -40, cy: -25, rx: 30, ry: 10, phase: 0.8 }];
+            antPaths.forEach(ant => {
+                let ax = ant.cx; let ay = ant.cy; let finalAngle = 0;
+                if (ant.id <= 2) { ay += Math.sin(time + ant.phase) * ant.ry; finalAngle = Math.cos(time + ant.phase) > 0 ? -Math.PI/2 : Math.PI/2; } 
+                else if (ant.id === 3 || ant.id === 4) { let th = time + ant.phase; ax += Math.cos(th)*ant.rx; ay += Math.sin(th)*ant.ry; finalAngle = th + Math.PI/2; } 
+                else { ax += Math.sin(time + ant.phase) * ant.rx; finalAngle = Math.cos(time + ant.phase) > 0 ? 0 : Math.PI; }
+                ctx.save(); ctx.translate(ax, ay); ctx.rotate(finalAngle); ctx.fillStyle = '#ca3a1b';
+                ctx.beginPath(); ctx.ellipse(-5, 0, 4.5, 3, 0, 0, Math.PI*2); ctx.ellipse(0, 0, 2.5, 2, 0, 0, Math.PI*2); ctx.arc(4, 0, 2.2, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#ca3a1b'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(1.5, -1.5); ctx.lineTo(2.5, -4.5); ctx.moveTo(1.5, 1.5); ctx.lineTo(2.5, 4.5); ctx.moveTo(0, -2); ctx.lineTo(-1, -5); ctx.moveTo(0, 2); ctx.lineTo(-1, 5); ctx.moveTo(-1.5, -2); ctx.lineTo(-3.5, -5.5); ctx.moveTo(-1.5, 2); ctx.lineTo(-3.5, 5.5); ctx.stroke();
+                ctx.restore();
+            });
+            ctx.restore(); return;
+        }
+
+        if (this.id === 'board') {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'; ctx.strokeStyle = this.id === actionTarget?.id ? '#fef08a' : 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 2; ctx.beginPath(); ctx.setLineDash([8, 8]); ctx.roundRect(-this.w/2, -this.h/2, this.w, this.h, 25); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+            let r = Math.min(this.w, this.h) * 0.44;
+            ctx.fillStyle = '#5c3015'; ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.fill(); ctx.shadowColor = 'transparent';
+            ctx.fillStyle = '#d7a15c'; ctx.beginPath(); ctx.arc(0, 0, r - 8, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#a67232'; ctx.lineWidth = 1.5; for (let rr = r - 20; rr > 15; rr -= 20) { ctx.beginPath(); ctx.arc(0, 0, rr, 0, Math.PI*2); ctx.stroke(); }
+            ctx.strokeStyle = '#b8813f'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(r*0.6, r*0.25); ctx.moveTo(0, 0); ctx.lineTo(-r*0.5, -r*0.45); ctx.stroke();
+            ctx.restore(); return;
+        }
+
+        if (this.id === 'tray') {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'; ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 2; ctx.beginPath(); ctx.setLineDash([6, 6]); ctx.roundRect(-this.w/2, -this.h/2, this.w, this.h, 15); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+            let g = ctx.createLinearGradient(-this.w/2, -this.h/2, this.w/2, this.h/2); g.addColorStop(0, '#cbd5e1'); g.addColorStop(0.5, '#94a3b8'); g.addColorStop(1, '#64748b');
+            ctx.fillStyle = g; ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 3; ctx.beginPath(); ctx.roundRect(-this.w/2+5, -this.h/2+5, this.w-10, this.h-10, 10); ctx.fill(); ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#475569'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.roundRect(-this.w/2+12, -this.h/2+12, this.w-24, this.h-24, 6); ctx.stroke();
+            ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-this.w/2+15, -this.h/2+15); ctx.lineTo(this.w/2-15, -this.h/2+15); ctx.stroke();
+            ctx.restore(); return;
+        }
+
+        if (this.id === 'mortar') {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'; ctx.strokeStyle = this.id === actionTarget?.id ? '#fef08a' : 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 2; ctx.beginPath(); ctx.setLineDash([8, 8]); ctx.roundRect(-this.w/2, -this.h/2, this.w, this.h, 25); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+            let r = Math.min(this.w, this.h) * 0.44;
+            ctx.fillStyle = '#4b5563'; ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 6; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.fill(); ctx.shadowColor = 'transparent';
+            ctx.fillStyle = '#1f2937'; for (let j=0; j<40; j++) { let rx = Math.sin(j*17)*0.9*r; let ry = Math.cos(j*23)*0.9*r; if(rx*rx+ry*ry<r*r){ ctx.beginPath(); ctx.arc(rx,ry,1.5+(j%3),0,Math.PI*2); ctx.fill(); } }
+            ctx.fillStyle = '#f3f4f6'; for (let j=0; j<30; j++) { let rx = Math.cos(j*31)*0.88*r; let ry = Math.sin(j*19)*0.88*r; if(rx*rx+ry*ry<r*r){ ctx.beginPath(); ctx.arc(rx,ry,1+(j%2),0,Math.PI*2); ctx.fill(); } }
+            let bRad = r*0.75; let bGrad = ctx.createRadialGradient(-5, -5, 5, 0, 0, bRad); bGrad.addColorStop(0, '#1f2937'); bGrad.addColorStop(0.7, '#111827'); bGrad.addColorStop(1, '#374151');
+            ctx.fillStyle = bGrad; ctx.beginPath(); ctx.arc(0, 0, bRad, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#9ca3af'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(0, 0, bRad, 0, Math.PI*2); ctx.stroke();
+            
+            if (currentState === GAME_STATES.M3) { ctx.fillStyle = '#fef08a'; ctx.font = "bold 20px 'Sarabun'"; ctx.textAlign = 'center'; ctx.fillText(`ตำ: ${missionData.poundCount}/10`, 0, -r - 20); }
+            ctx.restore(); return;
+        }
+
         ctx.fillStyle = this.type === 'zone' ? 'rgba(0,0,0,0.4)' : (this.type === 'button' ? 'rgba(34, 197, 94, 0.8)' : 'rgba(255, 255, 255, 0.2)');
         ctx.strokeStyle = this.type === 'zone' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.8)';
-        if(this.type === 'zone' && this.id === actionTarget?.id) ctx.strokeStyle = '#fef08a'; // Highlight
-
+        if(this.type === 'zone' && this.id === actionTarget?.id) ctx.strokeStyle = '#fef08a';
         ctx.lineWidth = 3;
-        if(this.type !== 'zone') {
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowBlur = 15;
-            ctx.shadowOffsetY = 5;
-        }
-
+        if(this.type !== 'zone') { ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 5; }
         ctx.beginPath();
-        if(this.type === 'zone') {
-            ctx.setLineDash([10, 10]);
-            ctx.roundRect(-this.w/2, -this.h/2, this.w, this.h, 20);
-        } else {
-            ctx.roundRect(-this.w/2, -this.h/2, this.w, this.h, 15);
-        }
-        ctx.fill();
-        ctx.stroke();
-        ctx.setLineDash([]);
+        if(this.type === 'zone') { ctx.setLineDash([10, 10]); ctx.roundRect(-this.w/2, -this.h/2, this.w, this.h, 20); } else { ctx.roundRect(-this.w/2, -this.h/2, this.w, this.h, 15); }
+        ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+        ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr';
+        
+        let customTypes = ['knife', 'culantro', 'spring', 'lime', 'chiliD', 'spoon', 'pestle', 'antEgg', 'chiliP', 'rice', 'fishS', 'plara', 'limeC', 'chiliRC', 'shallotC', 'culantroC', 'springC', 'corianderC', 'mint', 'bowl', 'dish', 'shallot', 'chiliR', 'coriander'];
+        let isCustom = customTypes.includes(this.id) || this.isChopped;
+        
+        let hasBoth = (this.emoji || isCustom) && nameText;
+        let emojiY = hasBoth ? -this.h * 0.15 : 0;
+        let textY = hasBoth ? this.h * 0.28 : 0;
 
-        // Emoji & Text Alignment & Configuration
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetY = 0;
-        
-        // ล็อคคุณสมบัติจัดกึ่งกลางและทิศทางตัวอักษรไว้ล่วงหน้าเพื่อป้องกันข้อความเอียง
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.direction = 'ltr';
-        
-        let nameText = this.name ? this.name.trim() : "";
-        let hasBoth = this.emoji && nameText;
-        
-        // คำนวณแกน Y ให้สมมาตรและสมดุลสายตาพอดีทั้งบนและล่าง
-        let emojiY = hasBoth ? -this.h * 0.14 : 0;
-        let textY = hasBoth ? this.h * 0.26 : 0;
+        if (isIOSDevice) { if (hasBoth) { emojiY += this.h * 0.055; textY += this.h * 0.045; } else { emojiY += this.h * 0.045; textY += this.h * 0.045; } } 
+        else if (isSafari && hasBoth) { emojiY += this.h * 0.02; textY += this.h * 0.02; }
 
-        if (this.emoji) {
-            let emojiSize = Math.min(this.w, this.h) * 0.45;
-            ctx.font = `${emojiSize}px Arial, sans-serif`;
-            ctx.fillText(this.emoji, 0, emojiY);
-        }
-        
-        if (nameText) {
-            let fontSize = Math.max(12, Math.min(this.w * 0.16, 24));
-            ctx.font = `bold ${fontSize}px 'Sarabun', sans-serif`;
-            
-            // วัดขนาดข้อความหลังจากตั้งค่า Font และ Align เรียบร้อยแล้ว เพื่อความแม่นยำสูงสุด
-            let textWidth = ctx.measureText(nameText).width;
-            if (textWidth > this.w * 0.9) {
-                fontSize = fontSize * ((this.w * 0.9) / textWidth);
-                ctx.font = `bold ${fontSize}px 'Sarabun', sans-serif`;
+        if (isCustom) {
+            ctx.save(); ctx.translate(0, emojiY);
+            let drawType = this.id;
+            if(this.isChopped) {
+                if(this.id === 'chiliR') drawType = 'chiliRChopped';
+                else if(this.id === 'shallot') drawType = 'shallotChopped';
+                else if(this.id === 'lime') drawType = 'limeC';
+                else drawType = 'choppedMisc';
             }
-            
-            ctx.fillStyle = 'white';
-            ctx.fillText(nameText, 0, textY);
+            if(this.id === 'bowl') { ctx.translate(0, 20); this.drawRealisticGraphics(ctx, 'bowl'); }
+            else if(this.id === 'dish') { ctx.translate(0, 20); this.drawRealisticGraphics(ctx, 'finalDish'); }
+            else this.drawRealisticGraphics(ctx, drawType);
+            ctx.restore();
+        } else if (this.emoji) {
+            let emojiSize = Math.min(this.w, this.h) * 0.45; ctx.font = `${emojiSize}px Arial, sans-serif`; ctx.fillText(this.emoji, 0, emojiY);
+        }
+        
+        if (nameText && this.id !== 'pestle') {
+            let fontSize = Math.max(12, Math.min(this.w * 0.16, 24));
+            ctx.font = `bold ${fontSize}px 'Sarabun', 'Thonburi', -apple-system, system-ui, sans-serif`;
+            let textWidth = ctx.measureText(nameText).width;
+            if (textWidth > this.w * 0.9) { fontSize = fontSize * ((this.w * 0.9) / textWidth); ctx.font = `bold ${fontSize}px 'Sarabun', 'Thonburi', -apple-system, system-ui, sans-serif`; }
+            ctx.fillStyle = 'white'; ctx.fillText(nameText, 0, textY);
         }
 
-        // Action Progress Bar
         if (actionTarget === this && actionTimer > 0) {
-            let progress = Math.min(1, actionTimer / 120); // 120 frames = ~2s
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
-            ctx.fillRect(-this.w/2 + 10, this.h/2 + 10, this.w - 20, 10);
-            ctx.fillStyle = '#4ade80';
-            ctx.fillRect(-this.w/2 + 10, this.h/2 + 10, (this.w - 20) * progress, 10);
+            let progress = Math.min(1, actionTimer / 120);
+            ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-this.w/2 + 10, this.h/2 + 10, this.w - 20, 10);
+            ctx.fillStyle = '#4ade80'; ctx.fillRect(-this.w/2 + 10, this.h/2 + 10, (this.w - 20) * progress, 10);
         }
 
         ctx.restore();
     }
 }
 
-/**
- * Game Logic & State Transitions
- */
-let missionData = {
-    antNeeds: { water: 100, meat: 100, nectar: 100 },
-    antReadiness: 0,
-    choppedCount: 0,
-    bowlIngredients: 0
-};
+function updateAllObjectsScale() { zones.forEach(z => z.updateScale()); items.forEach(i => i.updateScale()); }
 
 function setupState(newState) {
     currentState = newState;
     items = []; zones = [];
     instructionText.classList.remove('hidden');
 
-    const leftX = cw * 0.15;
-    const rightX = cw * 0.85;
-    const centerY = ch / 2;
-    const mainX = cw / 2;
+    const leftX = cw * 0.15; const rightX = cw * 0.85; const centerY = ch / 2; const mainX = cw / 2;
+
+    if (eduTexts[newState]) { eduPanel.classList.remove('hidden'); eduOpenBtn.classList.add('hidden'); eduText.innerText = eduTexts[newState]; } 
+    else { eduPanel.classList.add('hidden'); eduOpenBtn.classList.add('hidden'); }
     
     switch(newState) {
         case GAME_STATES.INSTRUCT:
             instructionText.innerText = "บีบนิ้ว (Pinch) เพื่อจับปุ่มเริ่มเกม";
-            items.push(new GameObject('startBtn', 'button', '🎮', 'เริ่มเกม!', mainX, centerY, 200, 120, false));
+            items.push(new GameObject('startBtn', 'button', '🎮', 'เริ่มเกม!', mainX, centerY, 200, 120, true));
             break;
             
         case GAME_STATES.M1:
-            // รีเซ็ตค่าด่าน 1 ใหม่เสมอเมื่อเริ่มหรือเริ่มใหม่
+            missionData.startTime = Date.now();
             missionData.antNeeds = { water: 100, meat: 100, nectar: 100 };
-            missionData.antReadiness = 0;
+            missionData.antReadiness = 0; missionData.bowlContents = [];
             instructionText.innerText = "ภารกิจที่ 1: เลี้ยงรังมดแดง เติมน้ำ/อาหารให้รังมด";
-            zones.push(new GameObject('nest', 'zone', '🌳🐜', 'รังมดแดง', mainX, centerY, 300, 300, false));
+            zones.push(new GameObject('nest', 'zone', '', '', mainX, centerY, 300, 300, false));
             items.push(new GameObject('water', 'ingredient', '💧', 'น้ำ', rightX, ch*0.3, 100, 100, true));
             items.push(new GameObject('meat', 'ingredient', '🥩', 'เศษเนื้อ', rightX, ch*0.5, 100, 100, true));
             items.push(new GameObject('nectar', 'ingredient', '🍯', 'น้ำหวาน', rightX, ch*0.7, 100, 100, true));
             break;
 
         case GAME_STATES.M2:
-            instructionText.innerText = "ภารกิจที่ 2: ลากวัตถุดิบไปที่เขียง แล้วใช้มีดหั่น (ค้างไว้ 2 วิ)";
-            zones.push(new GameObject('board', 'zone', '🟫', 'เขียง', mainX, centerY, 350, 250, false));
-            items.push(new GameObject('knife', 'tool', '🔪', 'มีด', rightX, centerY, 120, 120, true));
-            // Ingredients
-            let m2Ing = [
-                {id: 'shallot', e: '🧅', n: 'หอมแดง'}, {id: 'chiliR', e: '🌶️', n: 'พริกแดง'},
-                {id: 'culantro', e: '🌿', n: 'ผักชีฝรั่ง'}, {id: 'spring', e: '🌱', n: 'ต้นหอม'},
-                {id: 'coriander', e: '☘️', n: 'ผักชี'}, {id: 'lime', e: '🍋', n: 'มะนาว'}
-            ];
-            m2Ing.forEach((ing, i) => {
-                items.push(new GameObject(ing.id, 'ingredient', ing.e, ing.n, leftX, ch*0.2 + (i*90), 90, 80, true));
-            });
+            instructionText.innerText = "ภารกิจที่ 2: ลากผักไปซอยบนเขียงไม้ แล้วลากมาพักที่ถาดสแตนเลสให้ครบ";
+            zones.push(new GameObject('board', 'zone', '', '', mainX, centerY - 65, 230, 230, false));
+            zones.push(new GameObject('tray', 'zone', '', '', mainX, centerY + 140, 420, 150, false));
+            items.push(new GameObject('knife', 'tool', '', 'มีด', rightX, centerY, 120, 120, true));
+            
+            let m2Ing = [{id: 'shallot', e: '', n: 'หอมแดง'}, {id: 'chiliR', e: '', n: 'พริกแดง'}, {id: 'culantro', e: '', n: 'ผักชีฝรั่ง'}, {id: 'spring', e: '', n: 'ต้นหอม'}, {id: 'coriander', e: '', n: 'ผักชี'}, {id: 'lime', e: '', n: 'มะนาว'}];
+            m2Ing.forEach((ing, i) => { items.push(new GameObject(ing.id, 'ingredient', ing.e, ing.n, leftX, ch*0.2 + (i*90), 90, 80, true)); });
             break;
 
         case GAME_STATES.M3:
-            instructionText.innerText = "ภารกิจที่ 3: ลากพริกแห้งลงครก แล้วใช้สากตำ";
-            zones.push(new GameObject('mortar', 'zone', '🥣', 'ครก', mainX, centerY, 250, 250, false));
-            items.push(new GameObject('pestle', 'tool', '🏏', 'สาก', rightX, centerY, 120, 120, true));
-            items.push(new GameObject('chiliD', 'ingredient', '🌶️', 'พริกแห้ง', leftX, centerY, 100, 100, true));
+            instructionText.innerText = "ภารกิจที่ 3: จับสากมาโขลก (ขยับขึ้น-ลง) ที่ครก 10 ครั้ง";
+            missionData.poundCount = 0; missionData.poundDirection = 1;
+            zones.push(new GameObject('mortar', 'zone', '', '', mainX, centerY, 250, 250, false));
+            items.push(new GameObject('pestle', 'tool', '', '', rightX, centerY, 80, 180, true)); 
+            items.push(new GameObject('chiliD', 'ingredient', '', 'พริกแห้ง', leftX, centerY, 100, 100, true));
             break;
 
         case GAME_STATES.M4:
             instructionText.innerText = "ภารกิจที่ 4: ใส่ไข่มดแดง, พริกป่น, ข้าวคั่ว, น้ำปลา, ปลาร้า, มะนาว ลงชาม";
-            zones.push(new GameObject('bowl', 'zone', '🍲', 'ชามผสม', mainX, centerY, 350, 250, false));
-            let m4Ing = [
-                {id: 'antEgg', e: '🥚', n: 'ไข่มดแดง'}, {id: 'chiliP', e: '🌶️', n: 'พริกป่น'},
-                {id: 'rice', e: '🌾', n: 'ข้าวคั่ว'}, {id: 'fishS', e: '🍶', n: 'น้ำปลา'},
-                {id: 'plara', e: '🐟', n: 'น้ำปลาร้า'}, {id: 'limeC', e: '🍋', n: 'มะนาว(หั่น)'}
-            ];
-            m4Ing.forEach((ing, i) => {
-                items.push(new GameObject(ing.id, 'ingredient', ing.e, ing.n, leftX, ch*0.2 + (i*90), 90, 80, true));
-            });
+            zones.push(new GameObject('bowl', 'zone', '', '', mainX, centerY, 350, 250, false));
+            let m4Ing = [{id: 'antEgg', e: '', n: 'ไข่มดแดง'}, {id: 'chiliP', e: '', n: 'พริกป่น'}, {id: 'rice', e: '', n: 'ข้าวคั่ว'}, {id: 'fishS', e: '', n: 'น้ำปลา'}, {id: 'plara', e: '', n: 'น้ำปลาร้า'}, {id: 'limeC', e: '', n: 'มะนาว(หั่น)'}];
+            m4Ing.forEach((ing, i) => { items.push(new GameObject(ing.id, 'ingredient', ing.e, ing.n, leftX, ch*0.2 + (i*90), 90, 80, true)); });
             break;
 
         case GAME_STATES.M5:
             instructionText.innerText = "ภารกิจที่ 5: ใช้ทัพพีคนให้เข้ากัน (วน 10 รอบ)";
-            zones.push(new GameObject('bowl', 'zone', '🍲', 'ชามผสม', mainX, centerY, 350, 250, false));
-            items.push(new GameObject('spoon', 'tool', '🥄', 'ทัพพี', rightX, centerY, 120, 120, true));
+            zones.push(new GameObject('bowl', 'zone', '', '', mainX, centerY, 350, 250, false));
+            items.push(new GameObject('spoon', 'tool', '', 'ทัพพี', rightX, centerY, 120, 120, true));
             stirProgress = 0;
             break;
 
         case GAME_STATES.M6:
-            instructionText.innerText = "ภารกิจที่ 6: ใส่ผักที่ซอยแล้ว (พริก, หอม, ผักชีฝรั่ง, ต้นหอม, ผักชี, สะระแหน่)";
-            zones.push(new GameObject('bowl', 'zone', '🍲', 'ชามผสม', mainX, centerY, 350, 250, false));
-            let m6Ing = [
-                {id: 'chiliRC', e: '🌶️', n: 'พริก(ซอย)'}, {id: 'shallotC', e: '🧅', n: 'หอม(ซอย)'},
-                {id: 'culantroC', e: '🌿', n: 'ผักชีฝรั่ง'}, {id: 'springC', e: '🌱', n: 'ต้นหอม'},
-                {id: 'corianderC', e: '☘️', n: 'ผักชี'}, {id: 'mint', e: '🍃', n: 'สะระแหน่'}
-            ];
-            m6Ing.forEach((ing, i) => {
-                items.push(new GameObject(ing.id, 'ingredient', ing.e, ing.n, leftX, ch*0.2 + (i*90), 90, 80, true));
-            });
+            instructionText.innerText = "ภารกิจที่ 6: ใส่ผักที่ซอยแล้ว ลงชามผสม";
+            zones.push(new GameObject('bowl', 'zone', '', '', mainX, centerY, 350, 250, false));
+            let m6Ing = [{id: 'chiliRC', e: '', n: 'พริกซอย'}, {id: 'shallotC', e: '', n: 'หอมซอย'}, {id: 'culantroC', e: '', n: 'ผักชีฝรั่ง'}, {id: 'springC', e: '', n: 'ต้นหอม'}, {id: 'corianderC', e: '', n: 'ผักชี'}, {id: 'mint', e: '', n: 'สะระแหน่'}];
+            m6Ing.forEach((ing, i) => { items.push(new GameObject(ing.id, 'ingredient', ing.e, ing.n, leftX, ch*0.2 + (i*90), 90, 80, true)); });
             missionData.bowlIngredients = 0;
             break;
 
         case GAME_STATES.M7:
             instructionText.innerText = "ภารกิจที่ 7: คนคลุกเคล้าขั้นตอนสุดท้าย";
-            zones.push(new GameObject('bowl', 'zone', '🍲', 'ชามผสม', mainX, centerY, 350, 250, false));
-            items.push(new GameObject('spoon', 'tool', '🥄', 'ทัพพี', rightX, centerY, 120, 120, true));
+            zones.push(new GameObject('bowl', 'zone', '', '', mainX, centerY, 350, 250, false));
+            items.push(new GameObject('spoon', 'tool', '', 'ทัพพี', rightX, centerY, 120, 120, true));
             stirProgress = 0;
             break;
 
         case GAME_STATES.END:
-            instructionText.innerText = "เสร็จสิ้น!";
-            items.push(new GameObject('dish', 'zone', '✨🥗✨', 'ก้อยไข่มดแดงแสนอร่อย', mainX, centerY-50, 400, 300, false));
-            items.push(new GameObject('restartBtn', 'button', '🔄', 'เล่นอีกครั้ง', mainX, ch*0.8, 200, 80, false));
+            instructionText.innerText = "เสร็จสิ้นภารกิจ!";
+            let timeTaken = Math.floor((Date.now() - missionData.startTime) / 1000);
+            let m = Math.floor(timeTaken / 60); let s = timeTaken % 60;
+            let finalGrade = 'A+ 🌟'; if (score < 600) finalGrade = 'C 👌'; else if (score < 800) finalGrade = 'B 😊'; else if (score < 1100) finalGrade = 'A 👍';
+            
+            zones.push(new GameObject('dish', 'zone', '', '', mainX, centerY-60, 450, 320, false));
+            
+            let summaryBox = document.createElement('div');
+            summaryBox.id = 'summaryBox';
+            summaryBox.className = 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-32 glass-panel p-6 rounded-2xl text-white font-bold text-center z-40 w-[350px]';
+            summaryBox.innerHTML = `
+                <h3 class="text-2xl text-yellow-300 mb-2">📊 สรุปผลการประเมิน</h3>
+                <p class="text-lg">⏱️ เวลาที่ใช้: ${m} นาที ${s} วินาที</p>
+                <p class="text-xl my-2">🏆 คะแนนรวม: <span class="text-green-400">${score}</span></p>
+                <p class="text-3xl text-pink-400 mt-2">เกรด: ${finalGrade}</p>
+            `;
+            uiLayer.appendChild(summaryBox);
+
+            items.push(new GameObject('restartBtn', 'button', '🔄', 'เล่นอีกครั้ง', mainX, ch*0.9, 200, 80, true));
             break;
 
         case GAME_STATES.FAIL:
             instructionText.innerText = "ภารกิจล้มเหลว! มดตาย/หนีไปหมดแล้ว";
-            items.push(new GameObject('failIcon', 'zone', '❌', 'รังมดร้าง', mainX, centerY-50, 400, 300, false));
-            items.push(new GameObject('restartBtn', 'button', '🔄', 'เริ่มใหม่', mainX, ch*0.8, 200, 80, false));
+            zones.push(new GameObject('failIcon', 'zone', '❌', 'รังมดร้าง', mainX, centerY-50, 400, 300, false));
+            items.push(new GameObject('restartBtn', 'button', '🔄', 'เริ่มใหม่', mainX, ch*0.8, 200, 80, true));
             break;
     }
+    resize();
 }
 
-/**
- * Interaction Handling
- */
 function handlePinchStart() {
     let hit = false;
-    // Check buttons first
-    if(currentState === GAME_STATES.INSTRUCT && items[0].contains(cursor.x, cursor.y)) {
-        setupState(GAME_STATES.M1);
-        cursor.state = 'grabbed'; return;
+    let clickedStartBtn = items.find(item => item.id === 'startBtn');
+    let clickedRestartBtn = items.find(item => item.id === 'restartBtn');
+
+    if (currentState === GAME_STATES.INSTRUCT && clickedStartBtn && clickedStartBtn.contains(cursor.x, cursor.y)) {
+        setupState(GAME_STATES.M1); addScore(100, cursor.x, cursor.y); cursor.state = 'grabbed'; return;
     }
-    if((currentState === GAME_STATES.END || currentState === GAME_STATES.FAIL) && items[1].contains(cursor.x, cursor.y)) {
-        setupState(GAME_STATES.M1);
-        cursor.state = 'grabbed'; return;
+    if ((currentState === GAME_STATES.END || currentState === GAME_STATES.FAIL) && clickedRestartBtn && clickedRestartBtn.contains(cursor.x, cursor.y)) {
+        let sb = document.getElementById('summaryBox'); if(sb) sb.remove();
+        score = 0; setupState(GAME_STATES.M1); cursor.state = 'grabbed'; return;
     }
 
-    // Check draggable items (reverse loop to grab top items)
     for (let i = items.length - 1; i >= 0; i--) {
         let item = items[i];
         if (item.isDraggable && item.contains(cursor.x, cursor.y)) {
-            grabbedItem = item;
-            cursor.state = 'grabbed';
-            hit = true;
-            // Move item to top of array
-            items.push(items.splice(i, 1)[0]);
-            break;
+            grabbedItem = item; cursor.state = 'grabbed'; hit = true;
+            items.push(items.splice(i, 1)[0]); break;
         }
     }
     if(!hit) cursor.state = 'missed';
@@ -477,290 +704,196 @@ function handlePinchEnd() {
 
     let targetZone = zones.find(z => z.contains(cursor.x, cursor.y));
     
-    // Logic based on state
     if (currentState === GAME_STATES.M1 && targetZone?.id === 'nest') {
-        if(grabbedItem.id === 'water') missionData.antNeeds.water = Math.min(100, missionData.antNeeds.water + 30);
-        if(grabbedItem.id === 'meat') missionData.antNeeds.meat = Math.min(100, missionData.antNeeds.meat + 30);
-        if(grabbedItem.id === 'nectar') missionData.antNeeds.nectar = Math.min(100, missionData.antNeeds.nectar + 30);
+        if(grabbedItem.id === 'water') { missionData.antNeeds.water = Math.min(100, missionData.antNeeds.water + 30); addScore(25, targetZone.x, targetZone.y - 120); }
+        if(grabbedItem.id === 'meat') { missionData.antNeeds.meat = Math.min(100, missionData.antNeeds.meat + 30); addScore(25, targetZone.x, targetZone.y - 120); }
+        if(grabbedItem.id === 'nectar') { missionData.antNeeds.nectar = Math.min(100, missionData.antNeeds.nectar + 30); addScore(25, targetZone.x, targetZone.y - 120); }
         
-        // เพิ่มความพร้อม 10% ทุกครั้งที่หยิบอาหารป้อนสำเร็จ
         missionData.antReadiness = Math.min(100, missionData.antReadiness + 10);
-        if (missionData.antReadiness >= 100) {
-            setupState(GAME_STATES.M2);
-        }
+        if (missionData.antReadiness >= 100) setupState(GAME_STATES.M2);
 
-        // Reset item position กลับไปที่เดิมให้สวยงาม
-        grabbedItem.x = cw * 0.85;
-        grabbedItem.y = grabbedItem.id === 'water' ? ch*0.3 : (grabbedItem.id === 'meat' ? ch*0.5 : ch*0.7);
+        grabbedItem.x = cw * 0.85; grabbedItem.y = grabbedItem.id === 'water' ? ch*0.3 : (grabbedItem.id === 'meat' ? ch*0.5 : ch*0.7);
+        grabbedItem.relX = grabbedItem.x / cw; grabbedItem.relY = grabbedItem.y / ch;
     } 
-    else if (currentState === GAME_STATES.M2 || currentState === GAME_STATES.M3) {
-        if (grabbedItem.type === 'ingredient' && targetZone) {
-            // Drop on board/mortar
-            grabbedItem.targetZone = targetZone;
-            grabbedItem.x = targetZone.x;
-            grabbedItem.y = targetZone.y;
+    else if (currentState === GAME_STATES.M2) {
+        if (grabbedItem.type === 'ingredient') {
+            if (targetZone?.id === 'board' && !grabbedItem.isChopped) {
+                grabbedItem.targetZone = targetZone; grabbedItem.x = targetZone.x; grabbedItem.y = targetZone.y;
+                grabbedItem.relX = grabbedItem.x / cw; grabbedItem.relY = grabbedItem.y / ch;
+            } else if (targetZone?.id === 'tray' && grabbedItem.isChopped) {
+                grabbedItem.targetZone = targetZone;
+                let inTrayCount = items.filter(i => i.type === 'ingredient' && i.targetZone?.id === 'tray').length;
+                grabbedItem.x = targetZone.x - 140 + (inTrayCount * 55); 
+                grabbedItem.y = targetZone.y; grabbedItem.relX = grabbedItem.x / cw; grabbedItem.relY = grabbedItem.y / ch;
+                grabbedItem.isDraggable = false;
+                addScore(50, grabbedItem.x, grabbedItem.y - 30);
+                if (items.filter(i => i.type === 'ingredient' && i.targetZone?.id === 'tray').length === 6) setTimeout(() => setupState(GAME_STATES.M3), 1200);
+            } else resetIngredientPos(grabbedItem);
         } else if (grabbedItem.type === 'tool') {
-            // Return tool to origin
-            grabbedItem.x = cw * 0.85;
-            grabbedItem.y = ch / 2;
+            grabbedItem.x = cw * 0.85; grabbedItem.y = ch / 2; grabbedItem.relX = grabbedItem.x / cw; grabbedItem.relY = grabbedItem.y / ch;
         }
+    }
+    else if (currentState === GAME_STATES.M3) {
+        if (grabbedItem.type === 'ingredient' && targetZone?.id === 'mortar') {
+            grabbedItem.targetZone = targetZone; grabbedItem.x = targetZone.x; grabbedItem.y = targetZone.y;
+            grabbedItem.relX = grabbedItem.x / cw; grabbedItem.relY = grabbedItem.y / ch;
+        } else if (grabbedItem.type === 'tool') {
+            grabbedItem.x = cw * 0.85; grabbedItem.y = ch / 2; grabbedItem.relX = grabbedItem.x / cw; grabbedItem.relY = grabbedItem.y / ch;
+        } else resetIngredientPos(grabbedItem);
     }
     else if (currentState === GAME_STATES.M4 || currentState === GAME_STATES.M6) {
         if (grabbedItem.type === 'ingredient' && targetZone?.id === 'bowl') {
-            // Remove item, add to bowl progress
             items = items.filter(i => i.id !== grabbedItem.id);
-            missionData.bowlIngredients++;
-            if(items.length === 0) { // All ingredients added
-                setupState(currentState === GAME_STATES.M4 ? GAME_STATES.M5 : GAME_STATES.M7);
-            }
-        }
+            missionData.bowlContents.push(grabbedItem.id); 
+            addScore(20, targetZone.x, targetZone.y - 120);
+            if(items.length === 0) setupState(currentState === GAME_STATES.M4 ? GAME_STATES.M5 : GAME_STATES.M7);
+        } else resetIngredientPos(grabbedItem);
     }
     else if (currentState === GAME_STATES.M5 || currentState === GAME_STATES.M7) {
-        if (grabbedItem.type === 'tool') {
-             grabbedItem.x = cw * 0.85; grabbedItem.y = ch / 2;
-        }
+        if (grabbedItem.type === 'tool') { grabbedItem.x = cw * 0.85; grabbedItem.y = ch / 2; grabbedItem.relX = grabbedItem.x / cw; grabbedItem.relY = grabbedItem.y / ch; }
     }
-
-    actionTarget = null;
-    actionTimer = 0;
-    grabbedItem = null;
+    actionTarget = null; actionTimer = 0; grabbedItem = null;
 }
 
-/**
- * Main Game Loop (Draw & Update)
- */
 function drawLoop() {
-    // 1. Update Cursor Smoothing
-    cursor.x += (rawCursor.x - cursor.x) * 0.3;
-    cursor.y += (rawCursor.y - cursor.y) * 0.3;
-
-    // 2. Clear Canvas
+    cursor.x += (rawCursor.x - cursor.x) * 0.3; cursor.y += (rawCursor.y - cursor.y) * 0.3;
     ctx.clearRect(0, 0, cw, ch);
-
-    // 3. Game Logic Updates
     updateGameLogic();
-
-    // 4. Render Zones & Items
     zones.forEach(z => z.draw(ctx));
     items.forEach(i => i.draw(ctx));
-
-    // 5. Draw Specific UI Overlays on Canvas
     drawMissionUI();
-
-    // 6. Draw AI Hands (if active)
-    if (handDetected && landmarks) {
-        drawHandSkeleton();
-    }
-
-    // 7. Draw Custom Cursor
+    if (handDetected && landmarks) drawHandSkeleton();
+    drawFloatingScores();
     drawCursor();
-
     requestAnimationFrame(drawLoop);
 }
 
 function updateGameLogic() {
-    // Hover state update
     if (!cursor.isPinching) {
         let hovering = items.some(i => i.isDraggable && i.contains(cursor.x, cursor.y)) ||
-                       (currentState === GAME_STATES.INSTRUCT && items[0].contains(cursor.x, cursor.y)) ||
-                       ((currentState === GAME_STATES.END || currentState === GAME_STATES.FAIL) && items[1].contains(cursor.x, cursor.y));
+                       (currentState === GAME_STATES.INSTRUCT && items.some(i => i.id === 'startBtn' && i.contains(cursor.x, cursor.y))) ||
+                       ((currentState === GAME_STATES.END || currentState === GAME_STATES.FAIL) && items.some(i => i.id === 'restartBtn' && i.contains(cursor.x, cursor.y)));
         cursor.state = hovering ? 'hover' : 'normal';
     }
+    if (grabbedItem) { grabbedItem.x = cursor.x; grabbedItem.y = cursor.y; }
 
-    // Handle dragged item
-    if (grabbedItem) {
-        grabbedItem.x = cursor.x;
-        grabbedItem.y = cursor.y;
-    }
-
-    // Mission 1: Ant Farm Logic
     if (currentState === GAME_STATES.M1) {
-        // ค่าอาหารและน้ำลดลงเรื่อยๆ (ปรับให้ช้าลง จาก 0.15 เหลือ 0.04 ต่อเฟรม)
-        missionData.antNeeds.water -= 0.04;
-        missionData.antNeeds.meat -= 0.04;
-        missionData.antNeeds.nectar -= 0.04;
-
-        // ตรวจสอบว่าถ้าหลอดไหนหมด (เหลือ 0) ให้ Game Over ทันที
-        if(missionData.antNeeds.water <= 0 || missionData.antNeeds.meat <= 0 || missionData.antNeeds.nectar <= 0) {
-            setupState(GAME_STATES.FAIL);
-        }
+        // ลดความเร็วมดหิวลง
+        missionData.antNeeds.water -= 0.02; missionData.antNeeds.meat -= 0.02; missionData.antNeeds.nectar -= 0.02;
+        if(missionData.antNeeds.water <= 0 || missionData.antNeeds.meat <= 0 || missionData.antNeeds.nectar <= 0) setupState(GAME_STATES.FAIL);
     }
 
-    // Mission 2 & 3: Chopping / Pounding logic (Hold tool over item on zone)
-    if ((currentState === GAME_STATES.M2 || currentState === GAME_STATES.M3) && grabbedItem?.type === 'tool') {
-        let targetZone = zones[0]; // Board or Mortar
+    if (currentState === GAME_STATES.M2 && grabbedItem?.type === 'tool') {
+        let targetZone = zones[0];
         if (targetZone.contains(cursor.x, cursor.y)) {
-            // Find ingredient on this zone
             let targetIng = items.find(i => i.type === 'ingredient' && i.targetZone === targetZone && !i.isChopped);
             if (targetIng) {
-                actionTarget = targetIng;
-                actionTimer++;
-                // Shake effect
-                targetIng.x = targetZone.x + (Math.random()*10 - 5);
-                
-                if (actionTimer > 120) { // ~2 seconds
-                    targetIng.isChopped = true;
-                    targetIng.name += (currentState===GAME_STATES.M2 ? '(ซอยแล้ว)' : '(ป่นแล้ว)');
-                    targetIng.targetZone = null;
-                    targetIng.x = cw * 0.15; // Move back left
-                    actionTimer = 0;
-                    actionTarget = null;
-                    
-                    // Check M2 win condition
-                    if(currentState === GAME_STATES.M2 && items.filter(i=>i.type==='ingredient' && i.isChopped).length === 6) {
-                        setupState(GAME_STATES.M3);
-                    }
-                    // Check M3 win condition
-                    if(currentState === GAME_STATES.M3 && targetIng.isChopped) {
-                        setupState(GAME_STATES.M4);
-                    }
+                actionTarget = targetIng; actionTimer++;
+                if (actionTimer > 120) {
+                    targetIng.isChopped = true; targetIng.name += ' (ซอยแล้ว)';
+                    actionTimer = 0; actionTarget = null;
+                    addScore(30, targetIng.x, targetIng.y - 45);
                 }
             }
+        } else { actionTimer = 0; actionTarget = null; }
+    }
+
+    // ระบบขยับสากขึ้น-ลง ตำครก
+    if (currentState === GAME_STATES.M3 && grabbedItem?.id === 'pestle') {
+        let mortar = zones[0];
+        let targetIng = items.find(i => i.type === 'ingredient' && i.targetZone === mortar);
+        
+        if (mortar.contains(cursor.x, cursor.y) && targetIng) {
+            let currentY = cursor.y;
+            let dy = currentY - missionData.lastPestleY;
+            
+            if (Math.abs(dy) > 10) {
+                if (dy > 0 && missionData.poundDirection <= 0) { 
+                    missionData.poundDirection = 1;
+                    missionData.poundCount++;
+                    addScore(5, mortar.x, mortar.y - 50);
+                } else if (dy < 0 && missionData.poundDirection >= 0) { 
+                    missionData.poundDirection = -1;
+                }
+                missionData.lastPestleY = currentY;
+            }
+
+            if (missionData.poundCount >= 10) { 
+                targetIng.isChopped = true; targetIng.name += ' (ป่นแล้ว)';
+                targetIng.targetZone = null; targetIng.x = cw * 0.15; targetIng.y = ch / 2;
+                targetIng.relX = targetIng.x / cw; targetIng.relY = targetIng.y / ch;
+                addScore(50, targetIng.x, targetIng.y);
+                grabbedItem.x = cw * 0.85; grabbedItem.y = ch / 2; cursor.isPinching = false; grabbedItem = null;
+                setTimeout(() => setupState(GAME_STATES.M4), 500);
+            }
         } else {
-            actionTimer = 0; actionTarget = null;
+            missionData.lastPestleY = cursor.y;
         }
     }
 
-    // Mission 5 & 7: Stirring logic
     if ((currentState === GAME_STATES.M5 || currentState === GAME_STATES.M7) && grabbedItem?.id === 'spoon') {
         let bowl = zones[0];
         if (bowl.contains(cursor.x, cursor.y)) {
-            let dx = cursor.x - lastStirPos.x;
-            let dy = cursor.y - lastStirPos.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-            
-            // Accumulate movement if significant but not jumping
+            let dx = cursor.x - lastStirPos.x; let dy = cursor.y - lastStirPos.y; let dist = Math.sqrt(dx*dx + dy*dy);
             if (dist > 5 && dist < 100) stirProgress += dist;
-            
-            if (stirProgress > 3000) { // arbitrary distance for "10 circles"
+            if (stirProgress > 3000) {
+                let stirReward = currentState === GAME_STATES.M5 ? 100 : 150;
+                addScore(stirReward, bowl.x, bowl.y - 120);
                 setupState(currentState === GAME_STATES.M5 ? GAME_STATES.M6 : GAME_STATES.END);
             }
         }
         lastStirPos = {x: cursor.x, y: cursor.y};
-    } else {
-        lastStirPos = {x: cursor.x, y: cursor.y};
+    } else { lastStirPos = {x: cursor.x, y: cursor.y}; }
+}
+
+function drawFloatingScores() {
+    for (let i = scorePops.length - 1; i >= 0; i--) {
+        let pop = scorePops[i];
+        ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = `rgba(254, 240, 138, ${pop.alpha})`; ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 6; ctx.font = `bold 24px 'Sarabun', 'Thonburi', sans-serif`; ctx.fillText(pop.text, pop.x, pop.y); ctx.restore();
+        pop.y -= 1.2; pop.alpha -= 0.016; pop.life--;
+        if (pop.life <= 0 || pop.alpha <= 0) scorePops.splice(i, 1);
     }
 }
 
 function drawMissionUI() {
-    ctx.save(); // บันทึก state เพื่อป้องกันการกระทบส่วนอื่น
-    ctx.textAlign = 'center'; // บังคับให้ข้อความ UI อยู่ตรงกลางเสมอ
-    ctx.textBaseline = 'middle';
-    ctx.direction = 'ltr';
+    ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr';
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.beginPath(); ctx.roundRect(25, 25, 210, 50, 15); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.font = "bold 18px 'Sarabun', 'Thonburi', sans-serif"; ctx.fillStyle = '#fef08a'; ctx.textAlign = 'left'; ctx.fillText(`🏆 คะแนนสะสม: ${score}`, 45, 50 + (isIOSDevice ? 3 : 0));
+    ctx.textAlign = 'center'; let barWidth = Math.min(300, cw * 0.8);
     
     if (currentState === GAME_STATES.M1) {
-        // Draw Status Bars
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(cw/2 - 150, ch*0.2, 300, 20);
-        ctx.fillStyle = '#60a5fa'; // Water
-        ctx.fillRect(cw/2 - 150, ch*0.2, 300 * (Math.max(0,missionData.antNeeds.water)/100), 20);
-        ctx.fillStyle = 'white'; ctx.font = 'bold 16px Sarabun, sans-serif'; 
-        ctx.fillText('น้ำ', cw/2, ch*0.2 + 10);
-
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(cw/2 - 150, ch*0.2 + 30, 300, 20);
-        ctx.fillStyle = '#f87171'; // Meat
-        ctx.fillRect(cw/2 - 150, ch*0.2 + 30, 300 * (Math.max(0,missionData.antNeeds.meat)/100), 20);
-        ctx.fillStyle = 'white';
-        ctx.fillText('เนื้อ', cw/2, ch*0.2 + 40);
-
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(cw/2 - 150, ch*0.2 + 60, 300, 20);
-        ctx.fillStyle = '#fbbf24'; // Nectar
-        ctx.fillRect(cw/2 - 150, ch*0.2 + 60, 300 * (Math.max(0,missionData.antNeeds.nectar)/100), 20);
-        ctx.fillStyle = 'white';
-        ctx.fillText('น้ำหวาน', cw/2, ch*0.2 + 70);
-
-        // Readiness
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(cw/2 - 200, ch*0.8, 400, 30);
-        ctx.fillStyle = '#4ade80'; 
-        ctx.fillRect(cw/2 - 200, ch*0.8, 400 * (missionData.antReadiness/100), 30);
-        ctx.fillStyle = 'white'; ctx.fillText('ความพร้อมเก็บไข่มดแดง', cw/2, ch*0.8 + 15);
+        let iosYOffset = isIOSDevice ? 2 : 0;
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(cw/2 - barWidth/2, ch*0.18, barWidth, 20); ctx.fillStyle = '#60a5fa'; ctx.fillRect(cw/2 - barWidth/2, ch*0.18, barWidth * (Math.max(0,missionData.antNeeds.water)/100), 20); ctx.fillStyle = 'white'; ctx.font = "bold 14px 'Sarabun', 'Thonburi', -apple-system, sans-serif"; ctx.fillText('น้ำ', cw/2, ch*0.18 + 10 + iosYOffset);
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(cw/2 - barWidth/2, ch*0.18 + 30, barWidth, 20); ctx.fillStyle = '#f87171'; ctx.fillRect(cw/2 - barWidth/2, ch*0.18 + 30, barWidth * (Math.max(0,missionData.antNeeds.meat)/100), 20); ctx.fillStyle = 'white'; ctx.fillText('เนื้อ', cw/2, ch*0.18 + 40 + iosYOffset);
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(cw/2 - barWidth/2, ch*0.18 + 60, barWidth, 20); ctx.fillStyle = '#fbbf24'; ctx.fillRect(cw/2 - barWidth/2, ch*0.18 + 60, barWidth * (Math.max(0,missionData.antNeeds.nectar)/100), 20); ctx.fillStyle = 'white'; ctx.fillText('น้ำหวาน', cw/2, ch*0.18 + 70 + iosYOffset);
+        let readyWidth = Math.min(400, cw * 0.85); ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(cw/2 - readyWidth/2, ch*0.8, readyWidth, 30); ctx.fillStyle = '#4ade80'; ctx.fillRect(cw/2 - readyWidth/2, ch*0.8, readyWidth * (missionData.antReadiness/100), 30); ctx.fillStyle = 'white'; ctx.fillText('ความพร้อมเก็บไข่มดแดง', cw/2, ch*0.8 + 15);
     }
     
     if (currentState === GAME_STATES.M5 || currentState === GAME_STATES.M7) {
-        // Stir Progress
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(cw/2 - 150, ch*0.8, 300, 30);
-        ctx.fillStyle = '#a78bfa'; 
-        ctx.fillRect(cw/2 - 150, ch*0.8, 300 * Math.min(1, stirProgress/3000), 30);
-        ctx.fillStyle = 'white'; ctx.font = 'bold 16px Sarabun, sans-serif'; 
-        ctx.fillText('กำลังคลุกเคล้า...', cw/2, ch*0.8 + 15);
+        ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(cw/2 - barWidth/2, ch*0.8, barWidth, 30); ctx.fillStyle = '#a78bfa'; ctx.fillRect(cw/2 - barWidth/2, ch*0.8, barWidth * Math.min(1, stirProgress/3000), 30); ctx.fillStyle = 'white'; ctx.font = "bold 14px 'Sarabun', 'Thonburi', sans-serif"; ctx.fillText('กำลังคลุกเคล้าส่วนผสม...', cw/2, ch*0.8 + 15);
     }
-    
-    ctx.restore(); // คืนค่า state
+    ctx.restore();
 }
 
 function drawHandSkeleton() {
-    ctx.save();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
-
-    // Connections
-    const connections = HAND_CONNECTIONS;
-    for (let i = 0; i < connections.length; i++) {
-        const [a, b] = connections[i];
-        ctx.beginPath();
-        // สลับแกน X ตอนวาดเส้นโครงมือ
-        ctx.moveTo((1 - landmarks[a].x) * cw, landmarks[a].y * ch);
-        ctx.lineTo((1 - landmarks[b].x) * cw, landmarks[b].y * ch);
-        ctx.stroke();
-    }
-
-    // Points
-    for (let i = 0; i < landmarks.length; i++) {
-        ctx.beginPath();
-        // สลับแกน X ตอนวาดจุดข้อต่อ
-        ctx.arc((1 - landmarks[i].x) * cw, landmarks[i].y * ch, 4, 0, 2 * Math.PI);
-        ctx.fill();
-    }
-    ctx.restore();
+    ctx.save(); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
+    HAND_CONNECTIONS.forEach(([a, b]) => { ctx.beginPath(); ctx.moveTo((1 - landmarks[a].x) * cw, landmarks[a].y * ch); ctx.lineTo((1 - landmarks[b].x) * cw, landmarks[b].y * ch); ctx.stroke(); });
+    landmarks.forEach(lm => { ctx.beginPath(); ctx.arc((1 - lm.x) * cw, lm.y * ch, 4, 0, 2 * Math.PI); ctx.fill(); }); ctx.restore();
 }
 
 function drawCursor() {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cursor.x, cursor.y, 20, 0, Math.PI * 2);
-    ctx.lineWidth = 4;
-
-    if (cursor.state === 'normal') {
-        ctx.strokeStyle = '#3b82f6'; // Blue
-    } else if (cursor.state === 'hover') {
-        ctx.strokeStyle = '#facc15'; // Yellow
-        ctx.setLineDash([5, 5]);
-    } else if (cursor.state === 'missed') {
-        ctx.strokeStyle = '#ef4444'; // Red
-    } else if (cursor.state === 'grabbed') {
-        ctx.strokeStyle = '#22c55e'; // Green
-        ctx.fillStyle = '#22c55e';
-        ctx.fill();
-        ctx.fillStyle = 'white';
-        ctx.font = '20px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('✔️', cursor.x, cursor.y);
-    }
-    
-    if(cursor.state !== 'grabbed') ctx.stroke();
-    ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.arc(cursor.x, cursor.y, 20, 0, Math.PI * 2); ctx.lineWidth = 4;
+    if (cursor.state === 'normal') ctx.strokeStyle = '#3b82f6';
+    else if (cursor.state === 'hover') { ctx.strokeStyle = '#facc15'; ctx.setLineDash([5, 5]); }
+    else if (cursor.state === 'missed') ctx.strokeStyle = '#ef4444';
+    else if (cursor.state === 'grabbed') { ctx.strokeStyle = '#22c55e'; ctx.fillStyle = '#22c55e'; ctx.fill(); ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('✔️', cursor.x, cursor.y); }
+    if(cursor.state !== 'grabbed') ctx.stroke(); ctx.restore();
 }
 
-/**
- * Initialize
- */
 btnInit.addEventListener('click', () => {
     screenStart.style.opacity = '0';
-    setTimeout(() => {
-        screenStart.classList.add('hidden');
-        initMediaPipe();
-        setupState(GAME_STATES.INSTRUCT);
-        // Start Game Loop
-        requestAnimationFrame(drawLoop);
-    }, 500);
+    setTimeout(() => { screenStart.classList.add('hidden'); initMediaPipe(); setupState(GAME_STATES.INSTRUCT); resize(); requestAnimationFrame(drawLoop); }, 500);
 });
-
 </script>
 </body>
 </html>
