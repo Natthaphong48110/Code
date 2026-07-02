@@ -5,9 +5,9 @@ int main() {
     int score;
 
     //input
-    printf("Enter Your Name ");
+    printf("Enter Your Name : ");
     scanf("%s",&name);
-    printf("Enter Your Score ");
+    printf("Enter Your Score : ");
     scanf("%d",&score);
 
     //output
